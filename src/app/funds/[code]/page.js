@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Box,
@@ -77,7 +77,7 @@ export default function FundDetailsPage() {
     return futureValue.toFixed(2);
   };
 
-  const getReturns = (years) => {
+  const getReturns = useCallback((years) => {
     if (!fund?.navHistory || fund.navHistory.length < 2) return "N/A";
 
     const latest = fund.navHistory[0];
@@ -111,11 +111,11 @@ export default function FundDetailsPage() {
     const cagr = (Math.pow(latestNav / oldNav, 1 / years) - 1) * 100;
 
     return cagr.toFixed(2);
-  };
+  }, [fund]);
 
-  const returns1Y = useMemo(() => getReturns(1), [fund]);
-  const returns3Y = useMemo(() => getReturns(3), [fund]);
-  const returns5Y = useMemo(() => getReturns(5), [fund]);
+  const returns1Y = useMemo(() => getReturns(1), [fund, getReturns]);
+  const returns3Y = useMemo(() => getReturns(3), [fund, getReturns]);
+  const returns5Y = useMemo(() => getReturns(5), [fund, getReturns]);
 
   const chartData = useMemo(() => {
     if (!fund?.navHistory) return [];
