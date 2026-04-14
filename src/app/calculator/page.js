@@ -9,6 +9,7 @@ import {
   Container,
   TextField,
   Button,
+  InputAdornment,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Doughnut } from "react-chartjs-2";
@@ -133,8 +134,17 @@ export default function CalculatorPage() {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#000", color: "#00FF7F", display: "flex", flexDirection: "column" }}>
       {/* ===== Main ===== */}
-      <Container maxWidth="md" sx={{ flex: 1, py: 8 }}>
-        <Typography variant="h3" fontWeight="bold" align="center" sx={{ mb: 4, color: "#00FF7F" }}>
+      <Container maxWidth="md" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 } }}>
+        <Typography 
+          variant="h3" 
+          fontWeight="bold" 
+          align="center" 
+          sx={{ 
+            mb: 4, 
+            color: "#00FF7F",
+            fontSize: { xs: "2rem", sm: "3rem" }
+          }}
+        >
           Investment Calculators
         </Typography>
 
@@ -144,7 +154,7 @@ export default function CalculatorPage() {
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            "& .MuiTab-root": { color: "#00FF7F", fontWeight: "bold", textTransform: "none" },
+            "& .MuiTab-root": { color: "#00FF7F", fontWeight: "bold", textTransform: "none", minWidth: { xs: 80, sm: 120 } },
             "& .Mui-selected": { color: "#000", backgroundColor: "#00FF7F", borderRadius: "20px" },
             mb: 3,
           }}
@@ -158,74 +168,161 @@ export default function CalculatorPage() {
 
         {/* SIP */}
         <TabPanel value={tabIndex} index={0}>
-          <TextField label="Monthly Investment (₹)" fullWidth value={sipAmount} onChange={(e) => setSipAmount(e.target.value)} sx={inputStyle} />
+          <TextField 
+            label="Monthly Investment" 
+            fullWidth 
+            value={sipAmount} 
+            onChange={(e) => setSipAmount(e.target.value)} 
+            sx={inputStyle} 
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><Typography sx={{ color: "#00FF7F" }}>₹</Typography></InputAdornment>
+            }}
+          />
           <TextField label="Expected Annual Return (%)" fullWidth value={sipRate} onChange={(e) => setSipRate(e.target.value)} sx={inputStyle} />
           <TextField label="Investment Period (Years)" fullWidth value={sipYears} onChange={(e) => setSipYears(e.target.value)} sx={inputStyle} />
-          <Button variant="contained" onClick={calculateSIP} sx={{ backgroundColor: "#00FF7F", color: "#000", mt: 2 }}>Calculate SIP</Button>
+          <Button 
+            variant="contained" 
+            fullWidth={true}
+            onClick={calculateSIP} 
+            sx={{ 
+              backgroundColor: "#00FF7F", 
+              color: "#000", 
+              mt: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { backgroundColor: "#32CD32" }
+            }}
+          >
+            Calculate SIP
+          </Button>
           {sipResult && (
-            <>
-              <Typography sx={{ mt: 2 }}>Future Value: ₹ {sipResult}</Typography>
-              <Doughnut
-                data={{
-                  labels: ["Invested", "Returns"],
-                  datasets: [{
-                    data: [sipInvested, sipResult - sipInvested],
-                    backgroundColor: ["#008080", "#FF7F50"],
-                  }],
-                }}
-                options={chartOptions}
-                style={{ maxWidth: 300, margin: "20px auto" }}
-              />
-            </>
+            <Box sx={{ mt: 4, textAlign: "center", p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", borderRadius: 4, border: "1px solid rgba(0, 255, 127, 0.2)" }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Estimated Returns</Typography>
+              <Typography variant="h4" fontWeight="bold">₹ {Number(sipResult).toLocaleString('en-IN')}</Typography>
+              <Box sx={{ height: { xs: 250, sm: 300 }, mt: 2 }}>
+                <Doughnut
+                  data={{
+                    labels: ["Invested", "Returns"],
+                    datasets: [{
+                      data: [sipInvested, sipResult - sipInvested],
+                      backgroundColor: ["#008080", "#FF7F50"],
+                      borderWidth: 0,
+                    }],
+                  }}
+                  options={{
+                    ...chartOptions,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </Box>
+            </Box>
           )}
         </TabPanel>
 
         {/* SWP */}
         <TabPanel value={tabIndex} index={1}>
-          <TextField label="Corpus Amount (₹)" fullWidth value={swpCorpus} onChange={(e) => setSwpCorpus(e.target.value)} sx={inputStyle} />
+          <TextField 
+            label="Corpus Amount" 
+            fullWidth 
+            value={swpCorpus} 
+            onChange={(e) => setSwpCorpus(e.target.value)} 
+            sx={inputStyle} 
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><Typography sx={{ color: "#00FF7F" }}>₹</Typography></InputAdornment>
+            }}
+          />
           <TextField label="Expected Annual Return (%)" fullWidth value={swpRate} onChange={(e) => setSwpRate(e.target.value)} sx={inputStyle} />
           <TextField label="Withdrawal Period (Years)" fullWidth value={swpYears} onChange={(e) => setSwpYears(e.target.value)} sx={inputStyle} />
-          <Button variant="contained" onClick={calculateSWP} sx={{ backgroundColor: "#00FF7F", color: "#000", mt: 2 }}>Calculate SWP</Button>
+          <Button 
+            variant="contained" 
+            fullWidth={true}
+            onClick={calculateSWP} 
+            sx={{ 
+              backgroundColor: "#00FF7F", 
+              color: "#000", 
+              mt: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { backgroundColor: "#32CD32" }
+            }}
+          >
+            Calculate SWP
+          </Button>
           {swpResult && (
-            <>
-              <Typography sx={{ mt: 2 }}>Monthly Withdrawal: ₹ {swpResult}</Typography>
-              <Doughnut
-                data={{
-                  labels: ["Corpus Used", "Remaining Value"],
-                  datasets: [{
-                    data: [swpCorpus, swpResult],
-                    backgroundColor: ["#20B2AA", "#FF6347"],
-                  }],
-                }}
-                options={chartOptions}
-                style={{ maxWidth: 300, margin: "20px auto" }}
-              />
-            </>
+            <Box sx={{ mt: 4, textAlign: "center", p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", borderRadius: 4, border: "1px solid rgba(0, 255, 127, 0.2)" }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Monthly Withdrawal</Typography>
+              <Typography variant="h4" fontWeight="bold">₹ {Number(swpResult).toLocaleString('en-IN')}</Typography>
+              <Box sx={{ height: { xs: 250, sm: 300 }, mt: 2 }}>
+                <Doughnut
+                  data={{
+                    labels: ["Corpus", "Withdrawal"],
+                    datasets: [{
+                      data: [swpCorpus, swpResult],
+                      backgroundColor: ["#20B2AA", "#FF6347"],
+                      borderWidth: 0,
+                    }],
+                  }}
+                  options={{
+                    ...chartOptions,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </Box>
+            </Box>
           )}
         </TabPanel>
 
         {/* Step-up SIP */}
         <TabPanel value={tabIndex} index={2}>
-          <TextField label="Monthly Investment (₹)" fullWidth value={stepSipAmount} onChange={(e) => setStepSipAmount(e.target.value)} sx={inputStyle} />
+          <TextField 
+            label="Monthly Investment" 
+            fullWidth 
+            value={stepSipAmount} 
+            onChange={(e) => setStepSipAmount(e.target.value)} 
+            sx={inputStyle} 
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><Typography sx={{ color: "#00FF7F" }}>₹</Typography></InputAdornment>
+            }}
+          />
           <TextField label="Expected Annual Return (%)" fullWidth value={stepSipRate} onChange={(e) => setStepSipRate(e.target.value)} sx={inputStyle} />
           <TextField label="Investment Period (Years)" fullWidth value={stepSipYears} onChange={(e) => setStepSipYears(e.target.value)} sx={inputStyle} />
           <TextField label="Annual Increase (%)" fullWidth value={stepUpPercent} onChange={(e) => setStepUpPercent(e.target.value)} sx={inputStyle} />
-          <Button variant="contained" onClick={calculateStepUpSIP} sx={{ backgroundColor: "#00FF7F", color: "#000", mt: 2 }}>Calculate Step-up SIP</Button>
+          <Button 
+            variant="contained" 
+            fullWidth={true}
+            onClick={calculateStepUpSIP} 
+            sx={{ 
+              backgroundColor: "#00FF7F", 
+              color: "#000", 
+              mt: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { backgroundColor: "#32CD32" }
+            }}
+          >
+            Calculate Step-up SIP
+          </Button>
           {stepSipResult && (
-            <>
-              <Typography sx={{ mt: 2 }}>Future Value: ₹ {stepSipResult}</Typography>
-              <Doughnut
-                data={{
-                  labels: ["Invested", "Returns"],
-                  datasets: [{
-                    data: [stepSipInvested, stepSipResult - stepSipInvested],
-                    backgroundColor: ["#008B8B", "#FF8C00"],
-                  }],
-                }}
-                options={chartOptions}
-                style={{ maxWidth: 300, margin: "20px auto" }}
-              />
-            </>
+            <Box sx={{ mt: 4, textAlign: "center", p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", borderRadius: 4, border: "1px solid rgba(0, 255, 127, 0.2)" }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Future Value</Typography>
+              <Typography variant="h4" fontWeight="bold">₹ {Number(stepSipResult).toLocaleString('en-IN')}</Typography>
+              <Box sx={{ height: { xs: 250, sm: 300 }, mt: 2 }}>
+                <Doughnut
+                  data={{
+                    labels: ["Invested", "Returns"],
+                    datasets: [{
+                      data: [stepSipInvested, stepSipResult - stepSipInvested],
+                      backgroundColor: ["#008B8B", "#FF8C00"],
+                      borderWidth: 0,
+                    }],
+                  }}
+                  options={{
+                    ...chartOptions,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </Box>
+            </Box>
           )}
         </TabPanel>
 
@@ -235,46 +332,95 @@ export default function CalculatorPage() {
           <TextField label="Expected Annual Return (%)" fullWidth value={stepSwpRate} onChange={(e) => setStepSwpRate(e.target.value)} sx={inputStyle} />
           <TextField label="Withdrawal Period (Years)" fullWidth value={stepSwpYears} onChange={(e) => setStepSwpYears(e.target.value)} sx={inputStyle} />
           <TextField label="Annual Withdrawal Increase (%)" fullWidth value={stepSwpPercent} onChange={(e) => setStepSwpPercent(e.target.value)} sx={inputStyle} />
-          <Button variant="contained" onClick={calculateStepUpSWP} sx={{ backgroundColor: "#00FF7F", color: "#000", mt: 2 }}>Calculate Step-up SWP</Button>
+          <Button 
+            variant="contained" 
+            fullWidth={true}
+            onClick={calculateStepUpSWP} 
+            sx={{ 
+              backgroundColor: "#00FF7F", 
+              color: "#000", 
+              mt: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { backgroundColor: "#32CD32" }
+            }}
+          >
+            Calculate Step-up SWP
+          </Button>
           {stepSwpResult && (
-            <>
-              <Typography sx={{ mt: 2 }}>Monthly Withdrawal: ₹ {stepSwpResult}</Typography>
-              <Doughnut
-                data={{
-                  labels: ["Corpus Used", "Growth"],
-                  datasets: [{
-                    data: [stepSwpCorpus, stepSwpResult],
-                    backgroundColor: ["#5F9EA0", "#FFA07A"],
-                  }],
-                }}
-                options={chartOptions}
-                style={{ maxWidth: 300, margin: "20px auto" }}
-              />
-            </>
+            <Box sx={{ mt: 4, textAlign: "center", p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", borderRadius: 4, border: "1px solid rgba(0, 255, 127, 0.2)" }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Average Withdrawal</Typography>
+              <Typography variant="h4" fontWeight="bold">₹ {Number(stepSwpResult).toLocaleString('en-IN')}</Typography>
+              <Box sx={{ height: { xs: 250, sm: 300 }, mt: 2 }}>
+                <Doughnut
+                  data={{
+                    labels: ["Corpus", "Withdrawal"],
+                    datasets: [{
+                      data: [stepSwpCorpus, stepSwpResult],
+                      backgroundColor: ["#5F9EA0", "#FFA07A"],
+                      borderWidth: 0,
+                    }],
+                  }}
+                  options={{
+                    ...chartOptions,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </Box>
+            </Box>
           )}
         </TabPanel>
 
         {/* Lumpsum */}
         <TabPanel value={tabIndex} index={4}>
-          <TextField label="Lumpsum Amount (₹)" fullWidth value={lumpsumAmount} onChange={(e) => setLumpsumAmount(e.target.value)} sx={inputStyle} />
+          <TextField 
+            label="Lumpsum Amount" 
+            fullWidth 
+            value={lumpsumAmount} 
+            onChange={(e) => setLumpsumAmount(e.target.value)} 
+            sx={inputStyle} 
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><Typography sx={{ color: "#00FF7F" }}>₹</Typography></InputAdornment>
+            }}
+          />
           <TextField label="Expected Annual Return (%)" fullWidth value={lumpsumRate} onChange={(e) => setLumpsumRate(e.target.value)} sx={inputStyle} />
           <TextField label="Investment Period (Years)" fullWidth value={lumpsumYears} onChange={(e) => setLumpsumYears(e.target.value)} sx={inputStyle} />
-          <Button variant="contained" onClick={calculateLumpsum} sx={{ backgroundColor: "#00FF7F", color: "#000", mt: 2 }}>Calculate Lumpsum</Button>
+          <Button 
+            variant="contained" 
+            fullWidth={true}
+            onClick={calculateLumpsum} 
+            sx={{ 
+              backgroundColor: "#00FF7F", 
+              color: "#000", 
+              mt: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { backgroundColor: "#32CD32" }
+            }}
+          >
+            Calculate Lumpsum
+          </Button>
           {lumpsumResult && (
-            <>
-              <Typography sx={{ mt: 2 }}>Future Value: ₹ {lumpsumResult}</Typography>
-              <Doughnut
-                data={{
-                  labels: ["Invested", "Returns"],
-                  datasets: [{
-                    data: [lumpsumAmount, lumpsumResult - lumpsumAmount],
-                    backgroundColor: ["#40E0D0", "#FF7F50"],
-                  }],
-                }}
-                options={chartOptions}
-                style={{ maxWidth: 300, margin: "20px auto" }}
-              />
-            </>
+            <Box sx={{ mt: 4, textAlign: "center", p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", borderRadius: 4, border: "1px solid rgba(0, 255, 127, 0.2)" }}>
+              <Typography variant="h6" sx={{ mb: 1 }}>Future Value</Typography>
+              <Typography variant="h4" fontWeight="bold">₹ {Number(lumpsumResult).toLocaleString('en-IN')}</Typography>
+              <Box sx={{ height: { xs: 250, sm: 300 }, mt: 2 }}>
+                <Doughnut
+                  data={{
+                    labels: ["Invested", "Returns"],
+                    datasets: [{
+                      data: [lumpsumAmount, lumpsumResult - lumpsumAmount],
+                      backgroundColor: ["#40E0D0", "#FF7F50"],
+                      borderWidth: 0,
+                    }],
+                  }}
+                  options={{
+                    ...chartOptions,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </Box>
+            </Box>
           )}
         </TabPanel>
       </Container>

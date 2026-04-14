@@ -1,10 +1,44 @@
 "use client";
 
-import { Box, Typography, Button } from "@mui/material";
+import { useState } from "react";
+import { 
+    Box, 
+    Typography, 
+    Button, 
+    IconButton, 
+    Drawer, 
+    List, 
+    ListItem, 
+    ListItemButton,
+    ListItemText, 
+    Divider 
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
     const router = useRouter();
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const navItems = [
+        { label: "Home", path: "/" },
+        { label: "Explore Funds", path: "/funds" },
+        { label: "Active Funds", path: "/active-funds" },
+        { label: "Rankings", path: "/rankings" },
+        { label: "Watchlist", path: "/watchlist" },
+        { label: "About", path: "/about" },
+        { label: "Calculator", path: "/calculator" },
+    ];
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const handleNavClick = (path) => {
+        router.push(path);
+        setMobileOpen(false);
+    };
 
     return (
         <Box
@@ -13,39 +47,44 @@ export default function Navbar() {
                 position: "sticky",
                 top: 0,
                 zIndex: 1000,
+                width: "100%",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                px: { xs: 2, sm: 6 },
-                py: 2.5,
-                backgroundColor: "rgba(0, 255, 127, 0.1)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 2px 10px rgba(0,255,127,0.3)",
+                px: { xs: 2, sm: 4, md: 6 },
+                py: 1.5,
+                backgroundColor: "rgba(0, 0, 0, 0.9)",
+                backdropFilter: "blur(12px)",
+                borderBottom: "1px solid rgba(0, 255, 127, 0.3)",
+                boxShadow: "0 4px 30px rgba(0, 0, 0, 0.5)",
+                overflow: "hidden",
             }}
         >
             <Typography
                 variant="h6"
                 sx={{
                     fontWeight: "bold",
-                    letterSpacing: 1,
+                    letterSpacing: { xs: 0.5, sm: 1.2 },
                     color: "#00FF7F",
                     cursor: "pointer",
+                    fontSize: { xs: "0.95rem", sm: "1.25rem" },
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    textShadow: "0 0 10px rgba(0, 255, 127, 0.5)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: { xs: "200px", sm: "none" },
                 }}
                 onClick={() => router.push("/")}
             >
                 Mutual Fund Explorer
             </Typography>
 
-            <Box sx={{ display: "flex", gap: 0.5 }}>
-                {[
-                    { label: "Home", path: "/" },
-                    { label: "Explore Funds", path: "/funds" },
-                    { label: "Active Funds", path: "/active-funds" },
-                    { label: "Rankings", path: "/rankings" },
-                    { label: "Watchlist", path: "/watchlist" },
-                    { label: "About", path: "/about" },
-                    { label: "Calculator", path: "/calculator" },
-                ].map((item) => (
+            {/* Desktop Menu */}
+            <Box sx={{ display: { xs: "none", lg: "flex" }, gap: 1 }}>
+                {navItems.map((item) => (
                     <Button
                         key={item.label}
                         onClick={() => router.push(item.path)}
@@ -53,15 +92,15 @@ export default function Navbar() {
                             color: "#00FF7F",
                             fontWeight: "bold",
                             textTransform: "none",
-                            fontSize: "1rem",
+                            fontSize: "0.95rem",
                             borderRadius: 2,
-                            px: 2.5,
-                            py: 1,
-                            transition: "all 0.3s ease",
+                            px: 2,
+                            py: 0.8,
+                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                             "&:hover": {
-                                backgroundColor: "rgba(0,255,127,0.2)",
-                                transform: "scale(1.05)",
-                                boxShadow: "0 0 10px #00FF7F",
+                                backgroundColor: "rgba(0, 255, 127, 0.15)",
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 4px 15px rgba(0, 255, 127, 0.4)",
                             },
                         }}
                     >
@@ -69,6 +108,66 @@ export default function Navbar() {
                     </Button>
                 ))}
             </Box>
+
+            {/* Mobile Menu Icon */}
+            <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ 
+                    display: { lg: "none" }, 
+                    color: "#00FF7F",
+                    "&:hover": { backgroundColor: "rgba(0, 255, 127, 0.1)" }
+                }}
+            >
+                <MenuIcon />
+            </IconButton>
+
+            {/* Mobile Drawer */}
+            <Drawer
+                anchor="right"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                PaperProps={{
+                    sx: {
+                        width: 280,
+                        backgroundColor: "#0a0a0a",
+                        color: "#00FF7F",
+                        borderLeft: "1px solid #00FF7F",
+                    },
+                }}
+            >
+                <Box sx={{ p: 2, display: "flex", justifyContent: "flex-end" }}>
+                    <IconButton onClick={handleDrawerToggle} sx={{ color: "#00FF7F" }}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ backgroundColor: "rgba(0, 255, 127, 0.2)" }} />
+                <List sx={{ mt: 2 }}>
+                    {navItems.map((item) => (
+                        <ListItem key={item.label} disablePadding>
+                            <ListItemButton 
+                                onClick={() => handleNavClick(item.path)}
+                                sx={{
+                                    py: 2,
+                                    "&:hover": {
+                                        backgroundColor: "rgba(0, 255, 127, 0.1)",
+                                    },
+                                }}
+                            >
+                                <ListItemText 
+                                    primary={item.label} 
+                                    primaryTypographyProps={{
+                                        fontWeight: "bold",
+                                        fontSize: "1.1rem",
+                                    }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
+                </List>
+            </Drawer>
         </Box>
     );
 }

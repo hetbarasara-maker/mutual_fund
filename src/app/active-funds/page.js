@@ -59,6 +59,55 @@ export default function ActiveFunds() {
     setCurrentPage(1);
   }, [search, schemes, sortOrder]);
 
+  // 🏥 Helper to Guess Fund House and Category from Name
+  const getDetectedDetails = (name) => {
+    const n = name.toUpperCase();
+    let house = "Other";
+    let category = "Mutual Fund";
+
+    // Detect House
+    if (n.includes("HDFC")) house = "HDFC Mutual Fund";
+    else if (n.includes("ICICI") || n.includes("PRUDENTIAL")) house = "ICICI Prudential";
+    else if (n.includes("SBI")) house = "SBI Mutual Fund";
+    else if (n.includes("AXIS")) house = "Axis Mutual Fund";
+    else if (n.includes("NIPPON")) house = "Nippon India";
+    else if (n.includes("KOTAK")) house = "Kotak Mutual Fund";
+    else if (n.includes("TATA")) house = "Tata Mutual Fund";
+    else if (n.includes("UTI")) house = "UTI Mutual Fund";
+    else if (n.includes("DSP")) house = "DSP Mutual Fund";
+    else if (n.includes("QUANT")) house = "Quant Mutual Fund";
+    else if (n.includes("MIRAE")) house = "Mirae Asset";
+    else if (n.includes("ADITYA BIRLA") || n.includes("ABSL")) house = "Aditya Birla";
+    else if (n.includes("NIPPON")) house = "Nippon India";
+    else if (n.includes("FRANKLIN") || n.includes("TEMPLETON")) house = "Franklin Templeton";
+    else if (n.includes("CANARA") || n.includes("ROBECO")) house = "Canara Robeco";
+    else if (n.includes("EDELWEISS")) house = "Edelweiss MF";
+    else if (n.includes("IDFC") || n.includes("BANDHAN")) house = "Bandhan Mutual Fund";
+    else if (n.includes("PARAG PARIKH") || n.includes("PPFAS")) house = "Parag Parikh";
+    else if (n.includes("LIC")) house = "LIC Mutual Fund";
+    else if (n.includes("ABN AMRO")) house = "ABN AMRO";
+    else if (n.includes("HSBC")) house = "HSBC Mutual Fund";
+    else if (n.includes("INVESCO")) house = "Invesco India";
+    else if (n.includes("SUNDARAM")) house = "Sundaram MF";
+
+    // Detect Category
+    if (n.includes("EQUITY")) category = "Equity";
+    else if (n.includes("DEBT")) category = "Debt";
+    else if (n.includes("HYBRID")) category = "Hybrid";
+    else if (n.includes("INDEX")) category = "Index Fund";
+    else if (n.includes("ETF")) category = "ETF";
+    else if (n.includes("LIQUID")) category = "Liquid Fund";
+    else if (n.includes("ELSS") || n.includes("TAX")) category = "ELSS (Tax Saver)";
+    else if (n.includes("GOLD")) category = "Gold Fund";
+    else if (n.includes("LARGE CAP")) category = "Large Cap";
+    else if (n.includes("MID CAP")) category = "Mid Cap";
+    else if (n.includes("SMALL CAP")) category = "Small Cap";
+    else if (n.includes("FLEXI CAP")) category = "Flexi Cap";
+    else if (n.includes("OVERNIGHT")) category = "Overnight Fund";
+
+    return { house, category };
+  };
+
   const totalPages = Math.ceil(filteredSchemes.length / schemesPerPage);
   const startIndex = (currentPage - 1) * schemesPerPage;
   const currentSchemes = filteredSchemes.slice(startIndex, startIndex + schemesPerPage);
@@ -73,53 +122,94 @@ export default function ActiveFunds() {
   return (
     <Box sx={{ minHeight: '100vh', background: 'linear-gradient(180deg,  #000)', color: '#00FF7F', display: 'flex', flexDirection: 'column' }}>
       {/* ===== Main Content ===== */}
-      <Container maxWidth="lg" sx={{ flex: 1, py: 4 }}>
-        <Typography variant="h3" align="center" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 6 }, px: { xs: 2, sm: 4 } }}>
+        <Typography 
+          variant="h3" 
+          align="center" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 'bold', 
+            mb: 2,
+            fontSize: { xs: "2rem", sm: "3.5rem" }
+          }}
+        >
           Active Mutual Funds
         </Typography>
-        <Typography variant="body1" align="center" mb={4} sx={{ color: '#90EE90' }}>
+        <Typography variant="body1" align="center" mb={4} sx={{ color: '#90EE90', fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
           Found {filteredSchemes.length} active funds today.
         </Typography>
 
         {/* Search & Sort */}
-        <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid #00FF7F' }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
+        <Box 
+          sx={{ 
+            p: { xs: 2, sm: 3 }, 
+            mb: 5, 
+            borderRadius: 4, 
+            backgroundColor: 'rgba(0,0,0,0.4)', 
+            border: '1px solid rgba(0, 255, 127, 0.2)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <Grid container spacing={1.5} alignItems="flex-end">
+            <Grid item xs={7} sm={8}>
               <TextField
                 fullWidth
-                label="Search by Fund Name"
+                placeholder="Search..."
+                label="Search by Name"
                 variant="outlined"
+                size="small"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: '#00FF7F' }} /> }}
+                InputProps={{ 
+                  startAdornment: <SearchIcon sx={{ mr: 0.5, color: '#00FF7F', fontSize: '1.2rem' }} />,
+                }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     color: '#00FF7F',
-                    '& fieldset': { borderColor: '#00FF7F' },
-                    '&:hover fieldset': { borderColor: '#32CD32' },
-                    '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    fontSize: { xs: '0.85rem', sm: '1rem' },
+                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
+                    '&:hover fieldset': { borderColor: '#00FF7F' },
+                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
                   },
-                  '& .MuiInputLabel-root': { color: '#00FF7F' },
+                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } },
                   '& .MuiInputLabel-root.Mui-focused': { color: '#00FF7F' },
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth sx={{ '& .MuiInputLabel-root': { color: '#00FF7F' }, '& .MuiOutlinedInput-root': { color: '#00FF7F', '& fieldset': { borderColor: '#00FF7F' } } }}>
-                <InputLabel>Sort By</InputLabel>
+            <Grid item xs={5} sm={4}>
+              <FormControl 
+                fullWidth 
+                size="small"
+                sx={{ 
+                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } }, 
+                  '& .MuiOutlinedInput-root': { 
+                    color: '#00FF7F', 
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    fontSize: { xs: '0.85rem', sm: '1rem' },
+                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
+                    '&:hover fieldset': { borderColor: '#00FF7F' },
+                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
+                  } 
+                }}
+              >
+                <InputLabel>Sort</InputLabel>
                 <Select
                   value={sortOrder}
-                  label="Sort By"
+                  label="Sort"
                   onChange={e => setSortOrder(e.target.value)}
                   sx={{ color: '#00FF7F', '& .MuiSvgIcon-root': { color: '#00FF7F' } }}
                 >
-                  <MenuItem value="name_asc">Name (A-Z)</MenuItem>
-                  <MenuItem value="name_desc">Name (Z-A)</MenuItem>
+                  <MenuItem value="name_asc" sx={{ fontSize: '0.9rem' }}>A-Z</MenuItem>
+                  <MenuItem value="name_desc" sx={{ fontSize: '0.9rem' }}>Z-A</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
-        </Paper>
+        </Box>
 
         {/* Fund Cards */}
         {currentSchemes.length === 0 ? (
@@ -150,43 +240,113 @@ export default function ActiveFunds() {
           </Box>
         ) : (
           <>
-            <Typography variant="body1" sx={{ color: '#90EE90', mb: 3 }}>
-              Showing {currentSchemes.length} of {filteredSchemes.length} active funds
+            <Typography variant="body1" sx={{ color: '#90EE90', mb: 3, textAlign: { xs: 'center', sm: 'left' } }}>
+              Showing {startIndex + 1}-{Math.min(startIndex + currentSchemes.length, filteredSchemes.length)} of {filteredSchemes.length} funds
             </Typography>
-            <Grid container spacing={3}>
-          {currentSchemes.map(s => (
-            <Grid item xs={12} sm={6} md={4} key={s.schemeCode}>
-              <Card
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  border: '1px solid #00FF7F',
-                  borderRadius: 4,
-                  '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 0 25px #00FF7F' },
-                }}
-              >
-                <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#00FF7F', mb: 0.5 }}>{s.schemeName}</Typography>
-                  <Typography variant="caption" sx={{ color: '#90EE90' }}>Scheme Code: {s.schemeCode}</Typography>
-                </CardContent>
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Button component={Link} href={`/funds/${s.schemeCode}`} variant="contained" fullWidth sx={{ backgroundColor: '#00FF7F', color: '#000', '&:hover': { backgroundColor: '#32CD32' } }}>
-                    View Details
-                  </Button>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
+                gap: 3,
+              }}
+            >
+              {currentSchemes.map(s => (
+                <Box
+                  key={s.schemeCode}
+                  sx={{ height: 320, display: 'flex' }}
+                >
+                  <Card
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: 'rgba(10, 10, 10, 0.9)',
+                      border: '1px solid rgba(0, 255, 127, 0.25)',
+                      borderRadius: 4,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        borderColor: '#00FF7F',
+                        boxShadow: '0 8px 30px rgba(0,255,127,0.25)',
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ flexGrow: 1, p: 2.5, overflow: 'hidden' }}>
+                      <Typography
+                        fontWeight="bold"
+                        sx={{
+                          color: '#00FF7F',
+                          fontSize: '1rem',
+                          lineHeight: 1.4,
+                          height: '2.8em',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          mb: 1.5,
+                        }}
+                      >
+                        {s.schemeName}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
+                          <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>CODE</Typography>
+                          <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600 }}>{s.schemeCode}</Typography>
+                        </Box>
+                        {(() => {
+                           const details = getDetectedDetails(s.schemeName);
+                           return (
+                             <>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
+                                <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>HOUSE</Typography>
+                                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {details.house}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
+                                <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>CATEGORY</Typography>
+                                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {details.category}
+                                </Typography>
+                              </Box>
+                             </>
+                           )
+                        })()}
+                      </Box>
+                    </CardContent>
+                    <Box sx={{ px: 2.5, pb: 2.5, mt: 'auto' }}>
+                      <Button
+                        component={Link}
+                        href={`/funds/${s.schemeCode}`}
+                        variant="contained"
+                        fullWidth
+                        sx={{
+                          backgroundColor: '#00FF7F',
+                          color: '#000',
+                          fontWeight: 'bold',
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontSize: '0.85rem',
+                          py: 1,
+                          '&:hover': { backgroundColor: '#00cc6a', boxShadow: '0 0 12px #00FF7F' },
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </Box>
+                  </Card>
                 </Box>
-              </Card>
-            </Grid>
-          ))}
-            </Grid>
+              ))}
+            </Box>
           </>
         )}
 
         {/* ===== Neon Pagination ===== */}
         {totalPages > 1 && (
-          <Box display="flex" justifyContent="center" mt={5}>
+          <Box display="flex" justifyContent="center" mt={6}>
             <Pagination
               count={totalPages}
               page={currentPage}
@@ -195,9 +355,13 @@ export default function ActiveFunds() {
                 '& .MuiPaginationItem-root': {
                   color: '#00FF7F',
                   border: '1px solid #00FF7F',
+                  fontWeight: 'bold',
                   '&:hover': { backgroundColor: 'rgba(0,255,127,0.2)' },
                 },
-                '& .Mui-selected': { backgroundColor: '#00FF7F !important', color: '#000 !important' },
+                '& .Mui-selected': { 
+                  backgroundColor: '#00FF7F !important', 
+                  color: '#000 !important' 
+                },
               }}
             />
           </Box>

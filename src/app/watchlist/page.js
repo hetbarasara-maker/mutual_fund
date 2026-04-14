@@ -38,70 +38,88 @@ export default function WatchlistPage() {
       }}
     >
       {/* ===== Main Content ===== */}
-      <Container sx={{ flex: 1, py: 6 }}>
+      <Container sx={{ flex: 1, py: { xs: 4, sm: 8 } }}>
         <Typography
           variant="h3"
           align="center"
           sx={{
-            mb: 5,
+            mb: { xs: 4, sm: 6 },
             color: "#00FF7F",
             fontWeight: "bold",
+            fontSize: { xs: "2rem", sm: "3.5rem" }
           }}
         >
           Your Watchlist 💚
         </Typography>
 
         {watchlist.length === 0 ? (
-          <Typography align="center" sx={{ color: "#90EE90" }}>
-            Your watchlist is empty. Go add some funds!
-          </Typography>
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Typography variant="h6" sx={{ color: "#90EE90", mb: 3 }}>
+              Your watchlist is empty. Go add some funds!
+            </Typography>
+            <Button 
+               variant="contained" 
+               sx={{ backgroundColor: "#00FF7F", color: "#000", fontWeight: "bold", borderRadius: 3 }}
+               onClick={() => router.push("/funds")}
+            >
+              Explore Funds
+            </Button>
+          </Box>
         ) : (
           <Grid container spacing={3}>
             {watchlist.map((fund) => (
-              <Grid item xs={12} sm={6} md={6} key={fund.schemeCode}>
+              <Grid item xs={12} sm={6} md={4} key={fund.schemeCode}>
                 <Card
                   sx={{
                     backgroundColor: "rgba(20,20,20,0.9)",
                     border: "1px solid #00FF7F",
                     borderRadius: 4,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
                     boxShadow: "0 0 20px rgba(0,255,127,0.25)",
                     transition: "transform 0.3s ease, box-shadow 0.3s ease",
                     "&:hover": {
-                      transform: "scale(1.02)",
+                      transform: "translateY(-8px)",
                       boxShadow: "0 0 25px rgba(0,255,127,0.4)",
                     },
                   }}
                 >
-                  <CardContent>
+                  <CardContent sx={{ flexGrow: 1 }}>
                     <Typography
                       variant="h6"
                       fontWeight="bold"
                       gutterBottom
                       sx={{
                         color: "#00FF7F",
+                        fontSize: "1.2rem",
+                        minHeight: "3.2em"
                       }}
                     >
                       {fund.schemeName}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#90EE90" }}>
-                      Code: {fund.schemeCode}
+                    <Typography variant="body2" sx={{ color: "#90EE90", mb: 2 }}>
+                      <strong>Code:</strong> {fund.schemeCode}
                     </Typography>
 
                     <Box
                       sx={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        mt: 2,
+                        flexDirection: { xs: "column", lg: "row" },
+                        gap: 1,
+                        mt: "auto",
                       }}
                     >
                       <Button
                         variant="contained"
+                        fullWidth
                         size="small"
                         sx={{
                           backgroundColor: "#00FF7F",
                           color: "#000",
                           borderRadius: "20px",
                           fontWeight: "bold",
+                          textTransform: "none",
                           "&:hover": { backgroundColor: "#00cc6a" },
                         }}
                         onClick={() =>
@@ -113,14 +131,16 @@ export default function WatchlistPage() {
 
                       <Button
                         variant="outlined"
+                        fullWidth
                         size="small"
                         sx={{
                           borderColor: "#00FF7F",
                           color: "#00FF7F",
                           borderRadius: "20px",
                           fontWeight: "bold",
+                          textTransform: "none",
                           "&:hover": {
-                            backgroundColor: "rgba(0,255,127,0.1)",
+                            backgroundColor: "rgba(0,255,127,0.2)",
                           },
                         }}
                         onClick={() => removeFund(fund.schemeCode)}

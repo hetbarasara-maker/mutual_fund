@@ -72,12 +72,16 @@ export default function RankingsPage() {
       }}
     >
       {/* ===== Main Content ===== */}
-      <Container maxWidth="lg" sx={{ flex: 1, py: 8 }}>
+      <Container maxWidth="lg" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 } }}>
         <Typography
           variant="h3"
           fontWeight="bold"
           align="center"
-          sx={{ mb: 6, color: "#00FF7F" }}
+          sx={{ 
+            mb: { xs: 4, sm: 6 }, 
+            color: "#00FF7F",
+            fontSize: { xs: "2rem", sm: "3.5rem" }
+          }}
         >
           🏆 Top 10 Mutual Funds
         </Typography>
@@ -87,62 +91,78 @@ export default function RankingsPage() {
             No data available.
           </Typography>
         ) : (
-          <TableContainer
-            component={Paper}
-            sx={{
-              backgroundColor: "#111",
-              border: "1px solid #00FF7F",
-              color: "#7CFC00",
-              boxShadow: "0 0 20px rgba(0,255,127,0.2)",
-            }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>Rank</TableCell>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>Fund Name</TableCell>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>Fund House</TableCell>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>Category</TableCell>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>1-Year Return (%)</TableCell>
-                  <TableCell sx={{ color: "#00FF7F", fontWeight: "bold" }}>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rankings.map((fund, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{
-                      "&:hover": { backgroundColor: "rgba(0,255,127,0.1)" },
-                      color: "#7CFC00",
-                    }}
-                  >
-                    <TableCell sx={{ color: "#7CFC00" }}>{index + 1}</TableCell>
-                    <TableCell sx={{ color: "#7CFC00" }}>{fund.schemeName}</TableCell>
-                    <TableCell sx={{ color: "#7CFC00" }}>{fund.fundHouse || "N/A"}</TableCell>
-                    <TableCell sx={{ color: "#7CFC00" }}>{fund.category || "N/A"}</TableCell>
-                    <TableCell sx={{ color: "#7CFC00" }}>
-                      {fund.lastYearReturn?.toFixed(2) || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#00FF7F",
-                          color: "#000",
-                          textTransform: "none",
-                          fontWeight: "bold",
-                          "&:hover": { backgroundColor: "#32CD32" },
-                        }}
-                        onClick={() => router.push(`/funds/${fund.schemeCode}`)}
-                      >
-                        Explore Fund
-                      </Button>
-                    </TableCell>
+          <>
+            <TableContainer
+              component={Paper}
+              sx={{
+                backgroundColor: "#111",
+                border: "1px solid #00FF7F",
+                color: "#7CFC00",
+                boxShadow: "0 0 20px rgba(0,255,127,0.2)",
+                borderRadius: 3,
+                overflowX: "auto", // Ensure horizontal scroll on mobile
+                "&::-webkit-scrollbar": {
+                  height: "6px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#00FF7F",
+                  borderRadius: "10px",
+                },
+              }}
+            >
+              <Table sx={{ minWidth: { xs: 600, md: 800 } }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)" }}>Rank</TableCell>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)" }}>Fund Name</TableCell>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)", display: { xs: "none", sm: "table-cell" } }}>Fund House</TableCell>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)", display: { xs: "none", md: "table-cell" } }}>Category</TableCell>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)" }}>Return (%)</TableCell>
+                    <TableCell sx={{ color: "#00FF7F", fontWeight: "bold", borderBottom: "1px solid rgba(0,255,127,0.3)" }}>Action</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {rankings.map((fund, index) => (
+                    <TableRow
+                      key={index}
+                      sx={{
+                        "&:hover": { backgroundColor: "rgba(0,255,127,0.1)" },
+                        color: "#7CFC00",
+                      }}
+                    >
+                      <TableCell sx={{ color: "#7CFC00", borderBottom: "1px solid rgba(0,255,127,0.1)" }}>{index + 1}</TableCell>
+                      <TableCell sx={{ color: "#7CFC00", borderBottom: "1px solid rgba(0,255,127,0.1)", fontWeight: "bold" }}>{fund.schemeName}</TableCell>
+                      <TableCell sx={{ color: "#7CFC00", borderBottom: "1px solid rgba(0,255,127,0.1)", display: { xs: "none", sm: "table-cell" } }}>{fund.fundHouse || "N/A"}</TableCell>
+                      <TableCell sx={{ color: "#7CFC00", borderBottom: "1px solid rgba(0,255,127,0.1)", display: { xs: "none", md: "table-cell" } }}>{fund.category || "N/A"}</TableCell>
+                      <TableCell sx={{ color: "#00FF7F", borderBottom: "1px solid rgba(0,255,127,0.1)", fontWeight: "bold" }}>
+                        {fund.lastYearReturn?.toFixed(2) || "—"}%
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid rgba(0,255,127,0.1)" }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#00FF7F",
+                            color: "#000",
+                            textTransform: "none",
+                            fontWeight: "bold",
+                            borderRadius: 2,
+                            "&:hover": { backgroundColor: "#32CD32" },
+                          }}
+                          onClick={() => router.push(`/funds/${fund.schemeCode}`)}
+                        >
+                          Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Typography variant="caption" sx={{ color: "#90EE90", mt: 2, display: { xs: "block", sm: "none" }, textAlign: "center" }}>
+              ← Scroll horizontally to see more →
+            </Typography>
+          </>
         )}
       </Container>
     </Box>
