@@ -29,12 +29,19 @@ export default function FundsPage() {
   useEffect(() => {
     async function fetchFunds() {
       try {
+        console.log("Fetching funds...");
         const res = await fetch("/api/mf");
         const data = await res.json();
-        setFunds(data);
-        setFilteredFunds(data);
+        console.log("API Response:", data);
+        // Ensure data is always an array
+        const fundsArray = Array.isArray(data) ? data : (data?.data || []);
+        console.log(`Loaded ${fundsArray.length} funds`);
+        setFunds(fundsArray);
+        setFilteredFunds(fundsArray);
       } catch (error) {
         console.error("Error fetching funds:", error);
+        setFunds([]);
+        setFilteredFunds([]);
       } finally {
         setLoading(false);
       }
@@ -44,6 +51,10 @@ export default function FundsPage() {
 
   // 🔍 Filter by Search
   useEffect(() => {
+    if (!Array.isArray(funds)) {
+      setFilteredFunds([]);
+      return;
+    }
     const filtered = funds.filter((fund) =>
       fund.schemeName.toLowerCase().includes(search.toLowerCase())
     );
@@ -139,7 +150,38 @@ export default function FundsPage() {
         </Box>
 
         {/* ===== Funds Grid ===== */}
-        <Grid container spacing={3}>
+        {currentFunds.length === 0 ? (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 8,
+              color: "#90EE90",
+            }}
+          >
+            <Typography variant="h6">
+              {search ? "No funds found matching your search." : "Loading funds..."}
+            </Typography>
+            {search && (
+              <Button
+                variant="contained"
+                sx={{
+                  mt: 3,
+                  backgroundColor: "#00FF7F",
+                  color: "#000",
+                  "&:hover": { backgroundColor: "#00cc6a" },
+                }}
+                onClick={() => setSearch("")}
+              >
+                Clear Search
+              </Button>
+            )}
+          </Box>
+        ) : (
+          <>
+            <Typography variant="body1" sx={{ color: "#90EE90", mb: 3 }}>
+              Showing {currentFunds.length} of {filteredFunds.length} funds
+            </Typography>
+            <Grid container spacing={3}>
           {currentFunds.map((fund, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card
@@ -217,7 +259,9 @@ export default function FundsPage() {
               </Card>
             </Grid>
           ))}
-        </Grid>
+            </Grid>
+          </>
+        )}
 
         {/* ===== Pagination ===== */}
         {totalPages > 1 && (

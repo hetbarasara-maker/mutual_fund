@@ -35,13 +35,17 @@ export default function ActiveFunds() {
     fetch('/api/mf/active')
       .then(res => res.json())
       .then(data => {
-        const activeSchemes = data.data || [];
+        console.log('Active funds API response:', data);
+        const activeSchemes = Array.isArray(data) ? data : (data?.data || []);
+        console.log(`Active schemes loaded: ${activeSchemes.length}`);
         setSchemes(activeSchemes);
         setFilteredSchemes(activeSchemes);
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching schemes:', err);
+        setSchemes([]);
+        setFilteredSchemes([]);
         setLoading(false);
       });
   }, []);
@@ -118,7 +122,38 @@ export default function ActiveFunds() {
         </Paper>
 
         {/* Fund Cards */}
-        <Grid container spacing={3}>
+        {currentSchemes.length === 0 ? (
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 8,
+              color: '#90EE90',
+            }}
+          >
+            <Typography variant="h6">
+              {search ? 'No active funds found matching your search.' : 'No active funds available today.'}
+            </Typography>
+            {search && (
+              <Button
+                variant="contained"
+                sx={{
+                  mt: 3,
+                  backgroundColor: '#00FF7F',
+                  color: '#000',
+                  '&:hover': { backgroundColor: '#00cc6a' },
+                }}
+                onClick={() => setSearch('')}
+              >
+                Clear Search
+              </Button>
+            )}
+          </Box>
+        ) : (
+          <>
+            <Typography variant="body1" sx={{ color: '#90EE90', mb: 3 }}>
+              Showing {currentSchemes.length} of {filteredSchemes.length} active funds
+            </Typography>
+            <Grid container spacing={3}>
           {currentSchemes.map(s => (
             <Grid item xs={12} sm={6} md={4} key={s.schemeCode}>
               <Card
@@ -138,19 +173,15 @@ export default function ActiveFunds() {
                   <Typography variant="caption" sx={{ color: '#90EE90' }}>Scheme Code: {s.schemeCode}</Typography>
                 </CardContent>
                 <Box sx={{ p: 2, pt: 0 }}>
-                  <Button component={Link} href={`/scheme/${s.schemeCode}`} variant="contained" fullWidth sx={{ backgroundColor: '#00FF7F', color: '#000', '&:hover': { backgroundColor: '#32CD32' } }}>
+                  <Button component={Link} href={`/funds/${s.schemeCode}`} variant="contained" fullWidth sx={{ backgroundColor: '#00FF7F', color: '#000', '&:hover': { backgroundColor: '#32CD32' } }}>
                     View Details
                   </Button>
                 </Box>
               </Card>
             </Grid>
           ))}
-        </Grid>
-
-        {filteredSchemes.length === 0 && (
-          <Box textAlign="center" py={8}>
-            <Typography sx={{ color: '#90EE90' }}>No schemes found.</Typography>
-          </Box>
+            </Grid>
+          </>
         )}
 
         {/* ===== Neon Pagination ===== */}

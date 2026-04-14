@@ -42,7 +42,7 @@ export default function FundDetailsPage() {
   useEffect(() => {
     async function fetchFund() {
       try {
-        const res = await fetch(`/api/scheme/${code}`);
+        const res = await fetch(`/api/funds/${code}`);
         if (!res.ok) throw new Error("Failed to fetch fund details");
         const data = await res.json();
         setFund(data);
