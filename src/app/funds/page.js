@@ -17,6 +17,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
@@ -29,6 +31,7 @@ export default function FundsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("name_asc");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const fundsPerPage = 25;
 
   useEffect(() => {
@@ -131,13 +134,15 @@ export default function FundsPage() {
     const existing = JSON.parse(localStorage.getItem("watchlist")) || [];
     const alreadyAdded = existing.some((f) => f.schemeCode === fund.schemeCode);
     if (alreadyAdded) {
-      alert("✅ Already in Watchlist!");
+      setSnackbar({ open: true, message: "✅ Already in Watchlist!", severity: "info" });
       return;
     }
     const updated = [...existing, fund];
     localStorage.setItem("watchlist", JSON.stringify(updated));
-    alert("⭐ Added to Watchlist!");
+    setSnackbar({ open: true, message: "⭐ Added to Watchlist!", severity: "success" });
   };
+
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   const indexOfLastFund = page * fundsPerPage;
   const indexOfFirstFund = indexOfLastFund - fundsPerPage;
@@ -184,6 +189,9 @@ export default function FundsPage() {
           }}
         >
           Explore Mutual Funds
+        </Typography>
+        <Typography variant="body1" align="center" mb={4} sx={{ color: '#90EE90', fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
+          Found {filteredFunds.length} mutual funds to explore.
         </Typography>
 
         {/* 🔍 Search & Sort Box */}
@@ -442,6 +450,29 @@ export default function FundsPage() {
             />
           </Box>
         )}
+
+        {/* 🔔 Notifications */}
+        <Snackbar 
+          open={snackbar.open} 
+          autoHideDuration={3000} 
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity} 
+            variant="filled" 
+            sx={{ 
+              width: '100%', 
+              backgroundColor: snackbar.severity === 'success' ? '#00FF7F' : '#333', 
+              color: snackbar.severity === 'success' ? '#000' : '#fff',
+              fontWeight: 'bold',
+              borderRadius: 2
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );

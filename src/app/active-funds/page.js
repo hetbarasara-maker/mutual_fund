@@ -51,7 +51,10 @@ export default function ActiveFunds() {
   }, []);
 
   useEffect(() => {
-    let processed = [...schemes];
+    // Deduplicate schemes by schemeCode to avoid non-unique key warnings
+    const uniqueSchemes = Array.from(new Map(schemes.map(s => [s.schemeCode, s])).values());
+    
+    let processed = [...uniqueSchemes];
     if (search) processed = processed.filter(s => s.schemeName.toLowerCase().includes(search.toLowerCase()));
     if (sortOrder === 'name_asc') processed.sort((a, b) => a.schemeName.localeCompare(b.schemeName));
     if (sortOrder === 'name_desc') processed.sort((a, b) => b.schemeName.localeCompare(a.schemeName));
@@ -126,11 +129,11 @@ export default function ActiveFunds() {
         <Typography 
           variant="h3" 
           align="center" 
-          gutterBottom 
           sx={{ 
             fontWeight: 'bold', 
-            mb: 2,
-            fontSize: { xs: "2rem", sm: "3.5rem" }
+            mb: { xs: 4, sm: 5 },
+            fontSize: { xs: "2rem", sm: "3rem" },
+            color: "#00FF7F"
           }}
         >
           Active Mutual Funds
@@ -148,7 +151,9 @@ export default function ActiveFunds() {
             backgroundColor: 'rgba(0,0,0,0.4)', 
             border: '1px solid rgba(0, 255, 127, 0.2)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(10px)'
+            backdropFilter: 'blur(10px)',
+            maxWidth: 800,
+            mx: 'auto'
           }}
         >
           <Grid container spacing={1.5} alignItems="flex-end">
