@@ -233,6 +233,5 @@ export default function SchemePage() {
         </Box>
       </Container>
     </Box>
-    </Box>
   );
 }
