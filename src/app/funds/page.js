@@ -19,66 +19,61 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Stack,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
 
 export default function FundsPage() {
   const router = useRouter();
-  const [funds, setFunds] = useState([]);
   const [filteredFunds, setFilteredFunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("name_asc");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const fundsPerPage = 25;
 
+  // Debounce search input to avoid hitting API on every keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to page 1 on new search
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Fetch paginated funds from the server
   useEffect(() => {
     async function fetchFunds() {
+      setLoading(true);
       try {
-        console.log("Fetching funds...");
-        const res = await fetch("/api/mf");
+        const query = new URLSearchParams({
+          page: String(page),
+          limit: String(fundsPerPage),
+          search: debouncedSearch,
+          sort: sortOrder
+        });
+        const res = await fetch(`/api/mf?${query.toString()}`);
         const data = await res.json();
-        console.log("API Response:", data);
-        // Ensure data is always an array
-        const fundsArray = Array.isArray(data) ? data : (data?.data || []);
-        console.log(`Loaded ${fundsArray.length} funds`);
-        setFunds(fundsArray);
-        setFilteredFunds(fundsArray);
+        setFilteredFunds(data.data || []);
+        setTotalPages(data.pages || 1);
+        setTotalCount(data.total || 0);
       } catch (error) {
         console.error("Error fetching funds:", error);
-        setFunds([]);
         setFilteredFunds([]);
+        setTotalPages(1);
+        setTotalCount(0);
       } finally {
         setLoading(false);
       }
     }
     fetchFunds();
-  }, []);
-
-  // 🔍 Filter by Search & Sort
-  useEffect(() => {
-    if (!Array.isArray(funds)) {
-      setFilteredFunds([]);
-      return;
-    }
-    let filtered = funds.filter((fund) =>
-      fund.schemeName.toLowerCase().includes(search.toLowerCase())
-    );
-
-    // Sorting logic
-    filtered.sort((a, b) => {
-      if (sortOrder === "name_asc") {
-        return a.schemeName.localeCompare(b.schemeName);
-      } else {
-        return b.schemeName.localeCompare(a.schemeName);
-      }
-    });
-
-    setFilteredFunds(filtered);
-    setPage(1);
-  }, [search, funds, sortOrder]);
+  }, [page, debouncedSearch, sortOrder]);
 
   // 🏥 Helper to Guess Fund House and Category from Name
   const getDetectedDetails = (name) => {
@@ -144,10 +139,7 @@ export default function FundsPage() {
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
-  const indexOfLastFund = page * fundsPerPage;
-  const indexOfFirstFund = indexOfLastFund - fundsPerPage;
-  const currentFunds = filteredFunds.slice(indexOfFirstFund, indexOfLastFund);
-  const totalPages = Math.ceil(filteredFunds.length / fundsPerPage);
+  const currentFunds = filteredFunds;
 
   if (loading) {
     return (
@@ -167,101 +159,116 @@ export default function FundsPage() {
   }
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#000",
-        minHeight: "100vh",
-        color: "#00FF7F",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Background Elements */}
+      <Box 
+        sx={{ 
+          position: "fixed", 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          zIndex: -1,
+          background: "radial-gradient(circle at 50% 50%, #111 0%, #000 100%)",
+        }} 
+      />
+      
+      {/* Animated Mesh Grid */}
+      <Box 
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+          opacity: 0.1,
+          backgroundImage: `linear-gradient(#00FF7F 1px, transparent 1px), linear-gradient(90deg, #00FF7F 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse at center, black, transparent 80%)",
+        }}
+      />
+
       {/* ===== Main Content ===== */}
-      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 } }}>
-        <Typography
-          variant="h3"
-          fontWeight="bold"
-          align="center"
-          sx={{ 
-            mb: { xs: 4, sm: 5 }, 
-            color: "#00FF7F",
-            fontSize: { xs: "2rem", sm: "3rem" }
-          }}
-        >
-          Explore Mutual Funds
-        </Typography>
-        <Typography variant="body1" align="center" mb={4} sx={{ color: '#90EE90', fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
-          Found {filteredFunds.length} mutual funds to explore.
-        </Typography>
+      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 }, position: "relative", zIndex: 1 }}>
+        <Box sx={{ mb: 6, textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            sx={{ 
+              fontWeight: 900,
+              mb: 1, 
+              background: "linear-gradient(135deg, #fff 0%, #00FF7F 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: { xs: "2.5rem", sm: "3.5rem" }
+            }}
+          >
+            Market Explorer
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)', maxWidth: 600, mx: "auto" }}>
+            Discovery hub for {totalCount} verified mutual fund schemes. 
+            Analyze and track with ultimate precision.
+          </Typography>
+        </Box>
 
         {/* 🔍 Search & Sort Box */}
         <Box 
+          className="glass-card"
           sx={{ 
-            p: { xs: 2, sm: 3 }, 
-            mb: 5, 
-            borderRadius: 4, 
-            backgroundColor: 'rgba(0,0,0,0.4)', 
-            border: '1px solid rgba(0, 255, 127, 0.2)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(10px)',
-            maxWidth: 800,
-            mx: 'auto'
+            p: { xs: 2, sm: 4 }, 
+            mb: 8, 
+            maxWidth: 900,
+            mx: 'auto',
+            border: '1px solid rgba(0, 255, 127, 0.15)',
           }}
         >
-          <Grid container spacing={1.5} alignItems="flex-end">
-            <Grid item xs={7} sm={8}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} sm={8}>
               <TextField
                 fullWidth
-                placeholder="Search..."
-                label="Search by Name"
+                placeholder="Search by fund name..."
                 variant="outlined"
-                size="small"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 InputProps={{ 
-                  startAdornment: <SearchIcon sx={{ mr: 0.5, color: '#00FF7F', fontSize: '1.2rem' }} />,
+                  startAdornment: <SearchIcon sx={{ mr: 1.5, color: '#00FF7F', opacity: 0.7 }} />,
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    color: '#00FF7F',
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                    fontSize: { xs: '0.85rem', sm: '1rem' },
-                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#00FF7F' },
-                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
+                    color: '#fff',
+                    borderRadius: 3,
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    px: 1,
+                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                    '&:hover fieldset': { borderColor: 'rgba(0, 255, 127, 0.5)' },
+                    '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
                   },
-                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#00FF7F' },
                 }}
               />
             </Grid>
-            <Grid item xs={5} sm={4}>
+            <Grid item xs={12} sm={4}>
               <FormControl 
                 fullWidth 
-                size="small"
                 sx={{ 
-                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } }, 
                   '& .MuiOutlinedInput-root': { 
-                    color: '#00FF7F', 
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                    fontSize: { xs: '0.85rem', sm: '1rem' },
-                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#00FF7F' },
-                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
+                    color: '#fff', 
+                    borderRadius: 3,
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                    '&:hover fieldset': { borderColor: 'rgba(0, 255, 127, 0.5)' },
+                    '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
                   } 
                 }}
               >
-                <InputLabel>Sort</InputLabel>
+                <InputLabel sx={{ color: "rgba(255,255,255,0.5)" }}>Order By</InputLabel>
                 <Select
                   value={sortOrder}
-                  label="Sort"
+                  label="Order By"
                   onChange={e => setSortOrder(e.target.value)}
-                  sx={{ color: '#00FF7F', '& .MuiSvgIcon-root': { color: '#00FF7F' } }}
+                  sx={{ '& .MuiSvgIcon-root': { color: '#00FF7F' } }}
                 >
-                  <MenuItem value="name_asc" sx={{ fontSize: '0.9rem' }}>A-Z</MenuItem>
-                  <MenuItem value="name_desc" sx={{ fontSize: '0.9rem' }}>Z-A</MenuItem>
+                  <MenuItem value="name_asc">Name (A-Z)</MenuItem>
+                  <MenuItem value="name_desc">Name (Z-A)</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -270,185 +277,163 @@ export default function FundsPage() {
 
         {/* ===== Funds Grid ===== */}
         {currentFunds.length === 0 ? (
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 8,
-              color: "#90EE90",
-            }}
-          >
-            <Typography variant="h6">
-              {search ? "No funds found matching your search." : "Loading funds..."}
+          <Box sx={{ textAlign: "center", py: 12 }}>
+            <Typography variant="h5" color="rgba(255,255,255,0.4)">
+              No matching funds discovered.
             </Typography>
-            {search && (
-              <Button
-                variant="contained"
-                sx={{
-                  mt: 3,
-                  backgroundColor: "#00FF7F",
-                  color: "#000",
-                  "&:hover": { backgroundColor: "#00cc6a" },
-                }}
-                onClick={() => setSearch("")}
-              >
-                Clear Search
-              </Button>
-            )}
+            <Button
+              variant="text"
+              sx={{ mt: 2, color: "#00FF7F" }}
+              onClick={() => setSearch("")}
+            >
+              Reset Search Filter
+            </Button>
           </Box>
         ) : (
           <>
-            <Typography variant="body1" sx={{ color: "#90EE90", mb: 3, textAlign: { xs: "center", sm: "left" } }}>
-              Showing {currentFunds.length} of {filteredFunds.length} funds
-            </Typography>
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
-                gap: 3,
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr 1fr",
+                  md: "1fr 1fr 1fr",
+                },
+                gap: 4,
+                width: "100%",
               }}
             >
-              {currentFunds.map((fund, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    height: 320,
-                    display: "flex",
-                  }}
-                >
+              {currentFunds.map((fund, index) => {
+                const details = getDetectedDetails(fund.schemeName);
+                return (
                   <Card
+                    key={index}
+                    className="glass-card"
                     sx={{
-                      width: "100%",
-                      height: "100%",
-                      backgroundColor: "rgba(10, 10, 10, 0.9)",
-                      border: "1px solid rgba(0, 255, 127, 0.25)",
-                      borderRadius: 4,
+                      height: 420, // Mathematically identical height
                       display: "flex",
                       flexDirection: "column",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
-                      overflow: "hidden",
+                      p: 1,
+                      background: "rgba(255, 255, 255, 0.02) !important",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                       "&:hover": {
-                        transform: "translateY(-8px)",
-                        borderColor: "#00FF7F",
-                        boxShadow: "0 8px 30px rgba(0,255,127,0.25)",
+                        transform: "translateY(-10px)",
+                        background: "rgba(0, 255, 127, 0.05) !important",
+                        borderColor: "rgba(0, 255, 127, 0.4)",
+                        boxShadow: "0 20px 40px rgba(0,0,0,0.4)"
                       },
                     }}
                   >
-                    <CardContent sx={{ flexGrow: 1, p: 2.5, overflow: "hidden" }}>
+                    <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                        <Typography variant="caption" sx={{ color: "#00FF7F", fontWeight: "bold", letterSpacing: 1 }}>
+                          {fund.schemeCode}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.3)" }}>
+                          ID: {String(fund.schemeCode).slice(-4)}
+                        </Typography>
+                      </Box>
+                      
                       <Typography
-                        fontWeight="bold"
+                        variant="h6"
                         sx={{
-                          color: "#00FF7F",
-                          fontSize: "1rem",
-                          lineHeight: 1.4,
-                          height: "2.8em",
+                          fontWeight: 800,
+                          color: "#fff",
+                          mb: 3,
+                          lineHeight: 1.3,
+                          height: "2.6em",
+                          overflow: "hidden",
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          mb: 2,
                         }}
                       >
                         {fund.schemeName}
                       </Typography>
 
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8 }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                          <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>CODE</Typography>
-                          <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600 }}>{fund.schemeCode}</Typography>
+                      <Stack spacing={1.5} sx={{ mt: 'auto' }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "rgba(255,255,255,0.02)", p: 1.5, borderRadius: 2 }}>
+                          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)" }}>FUND HOUSE</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: "#fff" }}>{fund.fundHouse || details.house}</Typography>
                         </Box>
-                        {(() => {
-                           const details = getDetectedDetails(fund.schemeName);
-                           return (
-                             <>
-                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                                <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>HOUSE</Typography>
-                                <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {fund.fundHouse || details.house}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                                <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>CATEGORY</Typography>
-                                <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {fund.category || details.category}
-                                </Typography>
-                              </Box>
-                             </>
-                           )
-                        })()}
-                      </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "rgba(255,255,255,0.02)", p: 1.5, borderRadius: 2 }}>
+                          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)" }}>CATEGORY</Typography>
+                          <Box sx={{ bgcolor: "rgba(0, 255, 127, 0.1)", px: 1, py: 0.2, borderRadius: 1 }}>
+                            <Typography variant="caption" sx={{ color: "#00FF7F", fontWeight: "bold" }}>
+                              {fund.category || details.category}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Stack>
                     </CardContent>
 
-                    <Box sx={{ px: 2.5, pb: 2.5, display: "flex", gap: 1.5, mt: "auto" }}>
+                    <Box sx={{ p: 2, display: "flex", gap: 2, mt: 'auto' }}>
                       <Button
                         variant="contained"
                         fullWidth
                         onClick={() => router.push(`/funds/${fund.schemeCode}`)}
                         sx={{
-                          backgroundColor: "#00FF7F",
+                          bgcolor: "#00FF7F",
                           color: "#000",
-                          borderRadius: "10px",
+                          borderRadius: 3,
+                          fontWeight: 800,
                           textTransform: "none",
-                          fontWeight: "bold",
-                          py: 1,
-                          fontSize: "0.85rem",
-                          "&:hover": { backgroundColor: "#00cc6a", boxShadow: "0 0 12px #00FF7F" },
+                          py: 1.2,
+                          "&:hover": { bgcolor: "#00e672", boxShadow: "0 0 20px rgba(0, 255, 127, 0.4)" }
                         }}
                       >
-                        Explore
+                        Analyze
                       </Button>
                       <Button
                         variant="outlined"
                         fullWidth
                         onClick={() => handleAddToWatchlist(fund)}
                         sx={{
-                          color: "#00FF7F",
-                          borderColor: "rgba(0, 255, 127, 0.4)",
-                          borderRadius: "10px",
+                          borderColor: "rgba(255,255,255,0.1)",
+                          color: "#fff",
+                          borderRadius: 3,
+                          fontWeight: 600,
                           textTransform: "none",
-                          fontWeight: "bold",
-                          py: 1,
-                          fontSize: "0.85rem",
-                          "&:hover": {
-                            borderColor: "#00FF7F",
-                            backgroundColor: "rgba(0,255,127,0.1)",
-                          },
+                          "&:hover": { borderColor: "#00FF7F", color: "#00FF7F", bgcolor: "rgba(0,255,127,0.05)" }
                         }}
                       >
                         Watchlist
                       </Button>
                     </Box>
                   </Card>
-                </Box>
-              ))}
+                );
+              })}
             </Box>
-          </>
-        )}
 
-        {/* ===== Pagination ===== */}
-        {totalPages > 1 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              sx={{
-                "& .MuiPaginationItem-root": {
-                  color: "#00FF7F",
-                  border: "1px solid #00FF7F",
-                  fontWeight: "bold",
-                  "&:hover": {
-                    backgroundColor: "rgba(0,255,127,0.2)",
-                    transform: "scale(1.05)",
-                  },
-                },
-                "& .Mui-selected": {
-                  backgroundColor: "#00FF7F !important",
-                  color: "#000 !important",
-                },
-              }}
-            />
-          </Box>
+            {/* ===== Pagination ===== */}
+            {totalPages > 1 && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 10, mb: 4 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(e, value) => setPage(value)}
+                  sx={{
+                    "& .MuiPaginationItem-root": {
+                      color: "rgba(255,255,255,0.5)",
+                      borderRadius: 2,
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      "&:hover": {
+                        backgroundColor: "rgba(0,255,127,0.1)",
+                        color: "#00FF7F",
+                        borderColor: "#00FF7F",
+                      },
+                    },
+                    "& .Mui-selected": {
+                      backgroundColor: "#00FF7F !important",
+                      color: "#000 !important",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </>
         )}
 
         {/* 🔔 Notifications */}
@@ -462,12 +447,13 @@ export default function FundsPage() {
             onClose={handleCloseSnackbar} 
             severity={snackbar.severity} 
             variant="filled" 
+            className="glass-card"
             sx={{ 
               width: '100%', 
-              backgroundColor: snackbar.severity === 'success' ? '#00FF7F' : '#333', 
+              backgroundColor: snackbar.severity === 'success' ? 'rgba(0, 255, 127, 0.9)' : 'rgba(50, 50, 50, 0.9)', 
               color: snackbar.severity === 'success' ? '#000' : '#fff',
               fontWeight: 'bold',
-              borderRadius: 2
+              border: "1px solid rgba(255,255,255,0.1)"
             }}
           >
             {snackbar.message}

@@ -174,358 +174,264 @@ export default function FundDetailsPage() {
   const latest = navHistory?.[0];
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "#e0e0e0", pb: 8 }}>
-      <Container maxWidth="lg" sx={{ pt: { xs: 2, sm: 4 }, px: { xs: 2, sm: 4 } }}>
-        {/* HEADER */}
-        <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Background Elements */}
+      <Box 
+        sx={{ 
+          position: "fixed", 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          zIndex: -1,
+          background: "radial-gradient(circle at 50% 50%, #111 0%, #000 100%)",
+        }} 
+      />
+      
+      {/* Animated Mesh Grid */}
+      <Box 
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+          opacity: 0.1,
+          backgroundImage: `linear-gradient(#00FF7F 1px, transparent 1px), linear-gradient(90deg, #00FF7F 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse at center, black, transparent 80%)",
+        }}
+      />
+
+      {/* ===== Main Content ===== */}
+      <Container maxWidth="lg" sx={{ pt: { xs: 4, sm: 6 }, pb: 8, px: { xs: 2.5, sm: 4 }, position: "relative", zIndex: 1 }}>
+        {/* Breadcrumbs/Back */}
+        <Box sx={{ mb: 4, maxWidth: "800px", mx: "auto" }}>
           <Button
-            startIcon={<ArrowBackIcon />}
             onClick={() => router.back()}
             sx={{
-              color: "#00FF7F",
-              border: "1px solid rgba(0, 255, 127, 0.3)",
-              '&:hover': { backgroundColor: "rgba(0, 255, 127, 0.1)", border: "1px solid #00FF7F" },
-              minWidth: { xs: '100%', sm: 'auto' }
+              color: "rgba(255,255,255,0.4)",
+              textTransform: "none",
+              fontSize: "0.9rem",
+              "&:hover": { color: "#00FF7F", bgcolor: "transparent" },
+              pl: 0
+            }}
+            startIcon={<ArrowBackIcon sx={{ fontSize: 18 }} />}
+          >
+            Insights Center / Fund Analysis
+          </Button>
+        </Box>
+
+        {/* HEADER SECTION */}
+        <Box sx={{ mb: 6, maxWidth: "800px", mx: "auto" }}>
+          <Typography
+            variant="h3"
+            sx={{ 
+              fontWeight: 900,
+              mb: 2, 
+              color: "#fff",
+              fontSize: { xs: "1.8rem", sm: "2.8rem" },
+              lineHeight: 1.2
             }}
           >
-            Back
-          </Button>
-          <Box>
-            <Typography 
-               variant="h4" 
-               fontWeight="bold" 
-               sx={{ 
-                 color: "#fff", 
-                 mb: 1,
-                 fontSize: { xs: "1.5rem", sm: "2.125rem" },
-                 textAlign: { xs: "center", sm: "left" }
-               }}
-            >
-              {metadata.scheme_name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
-              <Chip
-                label={metadata.scheme_category}
-                size="medium"
-                icon={<CategoryIcon style={{ color: '#00FF7F' }} />}
-                sx={{ 
-                  backgroundColor: "rgba(0, 255, 127, 0.1)", 
-                  color: "#00FF7F", 
-                  border: "1px solid rgba(0, 255, 127, 0.3)", 
-                  fontWeight: 'bold',
-                  py: 2,
-                  '& .MuiChip-icon': { color: '#00FF7F' } 
-                }}
-              />
-              <Chip
-                label={metadata.fund_house}
-                size="medium"
-                icon={<BusinessIcon style={{ color: '#00FF7F' }} />}
-                sx={{ 
-                  backgroundColor: "rgba(0, 255, 127, 0.1)", 
-                  color: "#00FF7F", 
-                  border: "1px solid rgba(0, 255, 127, 0.3)", 
-                  fontWeight: 'bold',
-                  py: 2,
-                  '& .MuiChip-icon': { color: '#00FF7F' } 
-                }}
-              />
+            {metadata.scheme_name}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            <Box className="glass-card" sx={{ px: 2, py: 0.8, borderRadius: 2, bgcolor: "rgba(0, 255, 127, 0.05)", border: "1px solid rgba(0, 255, 127, 0.1)" }}>
+              <Typography variant="caption" sx={{ color: "#00FF7F", fontWeight: 800, letterSpacing: 1 }}>
+                {metadata.scheme_category?.toUpperCase()}
+              </Typography>
+            </Box>
+            <Box className="glass-card" sx={{ px: 2, py: 0.8, borderRadius: 2, bgcolor: "rgba(0, 209, 255, 0.05)", border: "1px solid rgba(0, 209, 255, 0.1)" }}>
+              <Typography variant="caption" sx={{ color: "#00D1FF", fontWeight: 800, letterSpacing: 1 }}>
+                {metadata.fund_house?.toUpperCase()}
+              </Typography>
             </Box>
           </Box>
         </Box>
 
-        <Grid container spacing={4}>
-          {/* LEFT COLUMN: Metadata & Chart */}
-          <Grid item xs={12} md={8}>
-            {/* CHART SECTION */}
-            <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, backgroundColor: "#111", border: "1px solid #333", borderRadius: 2, mb: 4 }}>
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2 }}>
-                <Typography variant="h6" sx={{ color: "#00FF7F", display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingUpIcon /> NAV Trend
-                </Typography>
-                <ButtonGroup size="small" variant="outlined" sx={{ '& .MuiButton-root': { color: '#00FF7F', borderColor: '#333' }, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}>
-                  {["1Y", "3Y", "5Y", "ALL"].map(d => (
-                    <Button
-                      key={d}
-                      onClick={() => setChartDuration(d)}
-                      sx={{
-                        flex: { xs: 1, sm: 'none' },
-                        backgroundColor: chartDuration === d ? "rgba(0, 255, 127, 0.2)" : "transparent",
-                        borderColor: chartDuration === d ? "#00FF7F !important" : "#333"
-                      }}
-                    >
-                      {d}
-                    </Button>
-                  ))}
-                </ButtonGroup>
-              </Box>
-
-              <Box sx={{ height: { xs: 250, sm: 350 }, width: "100%" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="colorNav" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00FF7F" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#00FF7F" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: "#666", fontSize: 10 }}
-                      tickLine={false}
-                      minTickGap={40}
-                    />
-                    <YAxis
-                      tick={{ fill: "#666", fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      domain={['auto', 'auto']}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#000", border: "1px solid #333", color: "#fff" }}
-                      itemStyle={{ color: "#00FF7F" }}
-                      labelStyle={{ color: "#888", marginBottom: '0.5rem' }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="nav"
-                      stroke="#00FF7F"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorNav)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Box>
-            </Paper>
-
-            {/* FUND INFO */}
-            <Typography variant="h6" sx={{ color: "#fff", mb: 2, mt: 4, textAlign: { xs: 'center', sm: 'left' } }}>Fund Metadata</Typography>
-            <Grid container spacing={2}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: 4, 
+            maxWidth: "800px", 
+            mx: "auto", 
+            width: "100%" 
+          }}
+        >
+          {/* REAL-TIME VALUE CARD */}
+          <Box 
+            className="glass-card" 
+            sx={{ 
+              p: 4, 
+              width: "100%", 
+              bgcolor: "rgba(0, 255, 127, 0.05)", 
+              border: "1px solid rgba(0, 255, 127, 0.2)",
+              boxSizing: 'border-box'
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "#00FF7F", fontWeight: 800, letterSpacing: 2, mb: 2 }}>CURRENT NAV</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 900, color: "#fff" }}>₹ {latest?.nav}</Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.4)" }}>Terminal Data: {latest?.date}</Typography>
+            
+            <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {[
-                { label: "Fund House", value: metadata.fund_house },
-                { label: "Scheme Type", value: metadata.scheme_type },
-                { label: "Category", value: metadata.scheme_category },
-                { label: "ISIN (Growth)", value: metadata.isin_growth },
-                { label: "ISIN (Payout)", value: metadata.isin_div_payout },
-                { label: "ISIN (Reinvestment)", value: metadata.isin_div_reinvestment },
-              ].map((item, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Paper sx={{ p: 2, backgroundColor: "#111", border: "1px solid #222", borderRadius: 2, height: '100%' }}>
-                    <Typography variant="caption" sx={{ color: "#00FF7F", opacity: 0.8, display: 'block', mb: 0.5, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {item.label}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "#e0e0e0", fontWeight: 500, wordBreak: 'break-all' }}>
-                      {item.value || "N/A"}
-                    </Typography>
-                  </Paper>
-                </Grid>
+                { label: "1-Year Projection", val: returns1Y },
+                { label: "3-Year Projection", val: returns3Y },
+                { label: "5-Year Projection", val: returns5Y },
+              ].map(stat => stat.val !== "N/A" && (
+                <Box key={stat.label} sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                  <Typography variant="body2" color="rgba(255,255,255,0.5)">{stat.label}</Typography>
+                  <Typography variant="body2" sx={{ color: "#00FF7F", fontWeight: 800 }}>+{stat.val}%</Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
+          </Box>
 
-            {/* NEW SECTION: About this Fund */}
-            <Paper sx={{ p: 3, mt: 4, backgroundColor: "rgba(0,0,0,0.3)", border: "1px solid #333", borderRadius: 3 }}>
-              <Typography variant="h6" sx={{ color: "#00FF7F", mb: 2 }}>Quick Insight</Typography>
-              <Typography variant="body2" sx={{ color: "#aaa", lineHeight: 1.8 }}>
-                This fund belongs to the <strong>{metadata.scheme_category}</strong> category and is managed by <strong>{metadata.fund_house}</strong>. 
-                As an <strong>{metadata.scheme_type}</strong>, it offers professional management of your capital aiming to achieve the objectives of the specified category. 
-                Always review the portfolio and risk profile before investing.
-              </Typography>
-            </Paper>
-          </Grid>
-
-          {/* RIGHT COLUMN: Current Stats & Calculators */}
-          <Grid item xs={12} md={4}>
-            {/* LATEST NAV CARD */}
-            <Paper elevation={0} sx={{ p: 3, backgroundColor: "rgba(0, 255, 127, 0.05)", border: "1px solid #00FF7F", borderRadius: 2, mb: 4, textAlign: 'center' }}>
-              <Typography variant="subtitle2" sx={{ color: "#00FF7F", mb: 1, textTransform: 'uppercase', letterSpacing: 1 }}>Current NAV</Typography>
-              <Typography 
-                 variant="h3" 
-                 fontWeight="bold" 
-                 sx={{ 
-                   color: "#fff", 
-                   mb: 1,
-                   fontSize: { xs: "2.5rem", sm: "3rem" },
-                   display: "flex",
-                   alignItems: "center",
-                   justifyContent: "center"
-                 }}
-              >
-                <Box component="span" sx={{ color: "#00FF7F", mr: 1 }}>₹</Box>
-                {latest?.nav}
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#888" }}>
-                As of {latest?.date}
-              </Typography>
-              <Divider sx={{ my: 2, borderColor: "rgba(0, 255, 127, 0.2)" }} />
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {[
-                  { label: "1Y Return", value: returns1Y, color: parseFloat(returns1Y) >= 0 ? "#00FF7F" : "#FF5555" },
-                  { label: "3Y Return", value: returns3Y, color: parseFloat(returns3Y) >= 0 ? "#00FF7F" : "#FF5555" },
-                  { label: "5Y Return", value: returns5Y, color: parseFloat(returns5Y) >= 0 ? "#00FF7F" : "#FF5555" }
-                ].map(stat => (
-                  stat.value !== "N/A" && (
-                    <Box key={stat.label} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" sx={{ color: "#ccc" }}>{stat.label}</Typography>
-                      <Typography variant="body1" fontWeight="bold" sx={{ color: stat.color }}>{stat.value}%</Typography>
-                    </Box>
-                  )
+          {/* NAV TRAJECTORY */}
+          <Box className="glass-card" sx={{ p: { xs: 2, sm: 4 }, width: "100%", boxSizing: 'border-box' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: "#fff" }}>NAV Trajectory</Typography>
+                <Typography variant="caption" color="rgba(255,255,255,0.4)">Performance over selected timeline</Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', p: 0.5, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                {["1Y", "3Y", "5Y", "ALL"].map(d => (
+                  <Button
+                    key={d}
+                    onClick={() => setChartDuration(d)}
+                    sx={{
+                      px: 2,
+                      minWidth: 50,
+                      height: 32,
+                      fontSize: "0.75rem",
+                      fontWeight: 800,
+                      borderRadius: 1.5,
+                      color: chartDuration === d ? "#000" : "rgba(255,255,255,0.5)",
+                      bgcolor: chartDuration === d ? "#00FF7F" : "transparent",
+                      "&:hover": { bgcolor: chartDuration === d ? "#00FF7F" : "rgba(255,255,255,0.05)" },
+                      transition: "all 0.3s ease"
+                    }}
+                  >
+                    {d}
+                  </Button>
                 ))}
               </Box>
-            </Paper>
+            </Box>
 
-            {/* SIP CALCULATOR */}
-            <Paper elevation={0} sx={{ p: 3, backgroundColor: "#111", border: "1px solid #333", borderRadius: 2, mb: 3 }}>
-              <Typography variant="h6" sx={{ color: "#fff", mb: 3, textAlign: 'center' }}>SIP Calculator</Typography>
+            <Box sx={{ height: 400, width: "100%", ml: -2 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="navGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#00FF7F" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#00FF7F" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }}
+                    minTickGap={60}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }}
+                    dx={-10}
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#0e0e0e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: 12 }}
+                    itemStyle={{ color: "#00FF7F", fontWeight: 800 }}
+                    labelStyle={{ color: "rgba(255,255,255,0.4)", marginBottom: 4 }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="nav" 
+                    stroke="#00FF7F" 
+                    strokeWidth={3} 
+                    fill="url(#navGradient)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </Box>
+          </Box>
+
+          {/* SCHEME INFRASTRUCTURE */}
+          <Box sx={{ width: "100%" }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Scheme Infrastructure</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: "100%" }}>
+              {[
+                { label: "Fund House", value: metadata.fund_house },
+                { label: "Type", value: metadata.scheme_type },
+                { label: "Category", value: metadata.scheme_category },
+                { label: "ISIN (Growth)", value: metadata.isin_growth },
+              ].map((item, idx) => (
+                <Box key={idx} className="glass-card" sx={{ p: 3, border: "1px solid rgba(255,255,255,0.03)", width: "100%", boxSizing: 'border-box' }}>
+                  <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: 1 }}>{item.label?.toUpperCase()}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 700, color: "#fff", mt: 0.5 }}>{item.value || "Not Disclosed"}</Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* INTERACTIVE SIP CALCULATOR */}
+          <Box className="glass-card" sx={{ p: 4, width: "100%", boxSizing: 'border-box' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Portfolio Forecast (SIP)</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <TextField 
+                label="Monthly Commitment" 
+                fullWidth 
+                value={sipAmount} 
+                onChange={(e) => setSipAmount(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': { color: '#fff', borderRadius: 3, bgcolor: 'rgba(255,255,255,0.02)' },
+                  '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.4)' }
+                }}
+                InputProps={{ startAdornment: <InputAdornment position="start"><Typography color="#00FF7F">₹</Typography></InputAdornment> }}
+              />
               <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Monthly Investment"
-                    type="number"
-                    variant="outlined"
-                    value={sipAmount}
-                    onChange={(e) => setSipAmount(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Typography sx={{ color: "#00FF7F", fontWeight: "bold" }}>₹</Typography>
-                        </InputAdornment>
-                      ),
-                      sx: { color: "#fff" }
-                    }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
+                <Grid item xs={6}>
+                  <TextField label="Years" fullWidth value={sipYears} onChange={(e) => setSipYears(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { color: '#fff', borderRadius: 3 } }} />
                 </Grid>
                 <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Years"
-                    type="number"
-                    value={sipYears}
-                    onChange={(e) => setSipYears(e.target.value)}
-                    InputProps={{ sx: { color: "#fff" } }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Return %"
-                    type="number"
-                    value={sipRate}
-                    onChange={(e) => setSipRate(e.target.value)}
-                    InputProps={{ sx: { color: "#fff" } }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
+                  <TextField label="Return %" fullWidth value={sipRate} onChange={(e) => setSipRate(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { color: '#fff', borderRadius: 3 } }} />
                 </Grid>
               </Grid>
-              <Box sx={{ mt: 3, p: 2, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 1, textAlign: 'center', border: '1px solid #222' }}>
-                <Typography variant="caption" sx={{ color: "#888", display: 'block' }}>Future Value</Typography>
-                <Typography variant="h5" sx={{ color: "#00FF7F", fontWeight: 'bold' }}>
-                  ₹{Number(calculateSIP()).toLocaleString('en-IN')}
-                </Typography>
+              <Box sx={{ p: 3, bgcolor: '#00FF7F', borderRadius: 3, textAlign: 'center', boxShadow: '0 10px 30px rgba(0, 255, 127, 0.2)' }}>
+                <Typography variant="caption" sx={{ color: '#000', fontWeight: 800, opacity: 0.6 }}>PROJECTED MATURITY</Typography>
+                <Typography variant="h5" sx={{ color: '#000', fontWeight: 900 }}>₹{Number(calculateSIP()).toLocaleString('en-IN')}</Typography>
               </Box>
-            </Paper>
+            </Box>
+          </Box>
 
-            {/* LUMPSUM CALCULATOR */}
-            <Paper elevation={0} sx={{ p: 3, backgroundColor: "#111", border: "1px solid #333", borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ color: "#fff", mb: 3, textAlign: 'center' }}>Lumpsum Calculator</Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Total Investment"
-                    type="number"
-                    value={lumpAmount}
-                    onChange={(e) => setLumpAmount(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Typography sx={{ color: "#00FF7F", fontWeight: "bold" }}>₹</Typography>
-                        </InputAdornment>
-                      ),
-                      sx: { color: "#fff" }
-                    }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Years"
-                    type="number"
-                    value={lumpYears}
-                    onChange={(e) => setLumpYears(e.target.value)}
-                    InputProps={{ sx: { color: "#fff" } }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Return %"
-                    type="number"
-                    value={lumpRate}
-                    onChange={(e) => setLumpRate(e.target.value)}
-                    InputProps={{ sx: { color: "#fff" } }}
-                    InputLabelProps={{ sx: { color: "#888" } }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#333' },
-                        '&:hover fieldset': { borderColor: '#666' },
-                        '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
-                      }
-                    }}
-                  />
-                </Grid>
-              </Grid>
-              <Box sx={{ mt: 3, p: 2, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 1, textAlign: 'center', border: '1px solid #222' }}>
-                <Typography variant="caption" sx={{ color: "#888", display: 'block' }}>Future Value</Typography>
-                <Typography variant="h5" sx={{ color: "#00FF7F", fontWeight: 'bold' }}>
-                  ₹{Number(calculateLumpsum()).toLocaleString('en-IN')}
-                </Typography>
+          {/* LUMPSUM CALCULATOR */}
+          <Box className="glass-card" sx={{ p: 4, width: "100%", boxSizing: 'border-box' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Lumpsum Growth</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <TextField label="Initial Capital" fullWidth value={lumpAmount} onChange={(e) => setLumpAmount(e.target.value)}
+                sx={{ '& .MuiOutlinedInput-root': { color: '#fff', borderRadius: 3 } }}
+                InputProps={{ startAdornment: <InputAdornment position="start"><Typography color="#00FF7F">₹</Typography></InputAdornment> }}
+              />
+              <Box sx={{ p: 2.5, bgcolor: 'rgba(255,255,255,0.03)', borderRadius: 3, textAlign: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>PROJECTED VALUE</Typography>
+                <Typography variant="h5" sx={{ color: '#fff', fontWeight: 900 }}>₹{Number(calculateLumpsum()).toLocaleString('en-IN')}</Typography>
               </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+            </Box>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

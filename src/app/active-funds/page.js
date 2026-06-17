@@ -18,49 +18,60 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import SearchIcon from '@mui/icons-material/Search';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import { useRouter } from 'next/navigation';
 
 export default function ActiveFunds() {
   const router = useRouter();
-  const [schemes, setSchemes] = useState([]);
   const [filteredSchemes, setFilteredSchemes] = useState([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState('name_asc');
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const schemesPerPage = 24;
 
+  // Debounce search input to avoid hitting API on every keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1); // Reset to page 1 on new search
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Fetch schemes from paginated server endpoint
   useEffect(() => {
     setLoading(true);
-    fetch('/api/mf/active')
+    const query = new URLSearchParams({
+      page: String(currentPage),
+      limit: String(schemesPerPage),
+      search: debouncedSearch,
+      sort: sortOrder
+    });
+
+    fetch(`/api/mf/active?${query.toString()}`)
       .then(res => res.json())
       .then(data => {
-        console.log('Active funds API response:', data);
-        const activeSchemes = Array.isArray(data) ? data : (data?.data || []);
-        console.log(`Active schemes loaded: ${activeSchemes.length}`);
-        setSchemes(activeSchemes);
-        setFilteredSchemes(activeSchemes);
+        setFilteredSchemes(data.data || []);
+        setTotalPages(data.pages || 1);
+        setTotalCount(data.total || 0);
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching schemes:', err);
-        setSchemes([]);
         setFilteredSchemes([]);
+        setTotalPages(1);
+        setTotalCount(0);
         setLoading(false);
       });
-  }, []);
-
-  useEffect(() => {
-    // Deduplicate schemes by schemeCode to avoid non-unique key warnings
-    const uniqueSchemes = Array.from(new Map(schemes.map(s => [s.schemeCode, s])).values());
-    
-    let processed = [...uniqueSchemes];
-    if (search) processed = processed.filter(s => s.schemeName.toLowerCase().includes(search.toLowerCase()));
-    if (sortOrder === 'name_asc') processed.sort((a, b) => a.schemeName.localeCompare(b.schemeName));
-    if (sortOrder === 'name_desc') processed.sort((a, b) => b.schemeName.localeCompare(a.schemeName));
-    setFilteredSchemes(processed);
-    setCurrentPage(1);
-  }, [search, schemes, sortOrder]);
+  }, [currentPage, debouncedSearch, sortOrder]);
 
   // 🏥 Helper to Guess Fund House and Category from Name
   const getDetectedDetails = (name) => {
@@ -111,9 +122,22 @@ export default function ActiveFunds() {
     return { house, category };
   };
 
-  const totalPages = Math.ceil(filteredSchemes.length / schemesPerPage);
-  const startIndex = (currentPage - 1) * schemesPerPage;
-  const currentSchemes = filteredSchemes.slice(startIndex, startIndex + schemesPerPage);
+  // ⭐ Add to Watchlist
+  const handleAddToWatchlist = (fund) => {
+    const existing = JSON.parse(localStorage.getItem("watchlist")) || [];
+    const alreadyAdded = existing.some((f) => f.schemeCode === fund.schemeCode);
+    if (alreadyAdded) {
+      setSnackbar({ open: true, message: "✅ Already in Watchlist!", severity: "info" });
+      return;
+    }
+    const updated = [...existing, fund];
+    localStorage.setItem("watchlist", JSON.stringify(updated));
+    setSnackbar({ open: true, message: "⭐ Added to Watchlist!", severity: "success" });
+  };
+
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+  const currentSchemes = filteredSchemes;
 
   if (loading) return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', color: '#00FF7F' }}>
@@ -123,248 +147,281 @@ export default function ActiveFunds() {
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(180deg,  #000)', color: '#00FF7F', display: 'flex', flexDirection: 'column' }}>
-      {/* ===== Main Content ===== */}
-      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 6 }, px: { xs: 2, sm: 4 } }}>
-        <Typography 
-          variant="h3" 
-          align="center" 
-          sx={{ 
-            fontWeight: 'bold', 
-            mb: { xs: 4, sm: 5 },
-            fontSize: { xs: "2rem", sm: "3rem" },
-            color: "#00FF7F"
-          }}
-        >
-          Active Mutual Funds
-        </Typography>
-        <Typography variant="body1" align="center" mb={4} sx={{ color: '#90EE90', fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
-          Found {filteredSchemes.length} active funds today.
-        </Typography>
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Background Elements */}
+      <Box 
+        sx={{ 
+          position: "fixed", 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          zIndex: -1,
+          background: "radial-gradient(circle at 50% 50%, #111 0%, #000 100%)",
+        }} 
+      />
+      
+      {/* Animated Mesh Grid */}
+      <Box 
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+          opacity: 0.1,
+          backgroundImage: `linear-gradient(#00FF7F 1px, transparent 1px), linear-gradient(90deg, #00FF7F 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse at center, black, transparent 80%)",
+        }}
+      />
 
-        {/* Search & Sort */}
+      {/* ===== Main Content ===== */}
+      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 6, sm: 8 }, px: { xs: 2, sm: 4 }, position: "relative", zIndex: 1 }}>
+        <Box sx={{ mb: 6, textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            sx={{ 
+              fontWeight: 900,
+              mb: 1, 
+              background: "linear-gradient(135deg, #fff 0%, #00FF7F 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: { xs: "2.5rem", sm: "3.5rem" }
+            }}
+          >
+            Live Market Funds
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)', maxWidth: 600, mx: "auto" }}>
+            Currently monitoring {totalCount} active mutual fund schemes. 
+            Real-time data for informed decision making.
+          </Typography>
+        </Box>
+
+        {/* Search & Sort Panel */}
         <Box 
+          className="glass-card" 
           sx={{ 
-            p: { xs: 2, sm: 3 }, 
-            mb: 5, 
-            borderRadius: 4, 
-            backgroundColor: 'rgba(0,0,0,0.4)', 
-            border: '1px solid rgba(0, 255, 127, 0.2)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(10px)',
-            maxWidth: 800,
-            mx: 'auto'
+            p: { xs: 2.5, sm: 4 }, 
+            mb: 8, 
+            maxWidth: 900,
+            mx: 'auto',
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.05)'
           }}
         >
-          <Grid container spacing={1.5} alignItems="flex-end">
-            <Grid item xs={7} sm={8}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={8}>
               <TextField
                 fullWidth
-                placeholder="Search..."
-                label="Search by Name"
-                variant="outlined"
-                size="small"
+                placeholder="Search funds by name..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
+                variant="outlined"
                 InputProps={{ 
-                  startAdornment: <SearchIcon sx={{ mr: 0.5, color: '#00FF7F', fontSize: '1.2rem' }} />,
+                  startAdornment: <SearchIcon sx={{ mr: 1.5, color: '#00FF7F' }} />,
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    color: '#00FF7F',
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                    fontSize: { xs: '0.85rem', sm: '1rem' },
-                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#00FF7F' },
-                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
-                  },
-                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#00FF7F' },
+                    color: '#fff',
+                    borderRadius: 3,
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
+                    '&:hover fieldset': { borderColor: 'rgba(0, 255, 127, 0.4)' },
+                    '&.Mui-focused fieldset': { borderColor: '#00FF7F' },
+                  }
                 }}
               />
             </Grid>
-            <Grid item xs={5} sm={4}>
-              <FormControl 
-                fullWidth 
-                size="small"
-                sx={{ 
-                  '& .MuiInputLabel-root': { color: 'rgba(0, 255, 127, 0.7)', fontSize: { xs: '0.85rem', sm: '1rem' } }, 
-                  '& .MuiOutlinedInput-root': { 
-                    color: '#00FF7F', 
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                    fontSize: { xs: '0.85rem', sm: '1rem' },
-                    '& fieldset': { borderColor: 'rgba(0, 255, 127, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#00FF7F' },
-                    '&.Mui-focused fieldset': { borderColor: '#00FF7F', borderWidth: 1.5 },
-                  } 
-                }}
-              >
-                <InputLabel>Sort</InputLabel>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
                 <Select
                   value={sortOrder}
-                  label="Sort"
                   onChange={e => setSortOrder(e.target.value)}
-                  sx={{ color: '#00FF7F', '& .MuiSvgIcon-root': { color: '#00FF7F' } }}
+                  sx={{ 
+                    color: '#fff', 
+                    borderRadius: 3,
+                    bgcolor: 'rgba(255,255,255,0.03)',
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0, 255, 127, 0.4)' },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00FF7F' },
+                    '& .MuiSvgIcon-root': { color: '#00FF7F' }
+                  }}
                 >
-                  <MenuItem value="name_asc" sx={{ fontSize: '0.9rem' }}>A-Z</MenuItem>
-                  <MenuItem value="name_desc" sx={{ fontSize: '0.9rem' }}>Z-A</MenuItem>
+                  <MenuItem value="name_asc">Name: A to Z</MenuItem>
+                  <MenuItem value="name_desc">Name: Z to A</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
         </Box>
 
-        {/* Fund Cards */}
+        {/* Fund Cards Grid */}
         {currentSchemes.length === 0 ? (
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 8,
-              color: '#90EE90',
-            }}
-          >
-            <Typography variant="h6">
-              {search ? 'No active funds found matching your search.' : 'No active funds available today.'}
+          <Box sx={{ textAlign: 'center', py: 12 }}>
+            <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.4)', mb: 4 }}>
+              No funds match your current search.
             </Typography>
-            {search && (
-              <Button
-                variant="contained"
-                sx={{
-                  mt: 3,
-                  backgroundColor: '#00FF7F',
-                  color: '#000',
-                  '&:hover': { backgroundColor: '#00cc6a' },
-                }}
-                onClick={() => setSearch('')}
-              >
-                Clear Search
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              onClick={() => setSearch('')}
+              sx={{ color: '#00FF7F', borderColor: '#00FF7F', borderRadius: 2, px: 4 }}
+            >
+              Reset Search
+            </Button>
           </Box>
         ) : (
-          <>
-            <Typography variant="body1" sx={{ color: '#90EE90', mb: 3, textAlign: { xs: 'center', sm: 'left' } }}>
-              Showing {startIndex + 1}-{Math.min(startIndex + currentSchemes.length, filteredSchemes.length)} of {filteredSchemes.length} funds
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
-                gap: 3,
-              }}
-            >
-              {currentSchemes.map(s => (
-                <Box
-                  key={s.schemeCode}
-                  sx={{ height: 320, display: 'flex' }}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "1fr 1fr 1fr",
+              },
+              gap: 4,
+              width: "100%",
+            }}
+          >
+            {currentSchemes.map(s => {
+              const details = getDetectedDetails(s.schemeName);
+              return (
+                <Card
+                  key={String(s.schemeCode).trim()}
+                  className="glass-card"
+                  sx={{
+                    height: 420, // Mathematically identical height
+                    display: 'flex',
+                    flexDirection: 'column',
+                    p: 1,
+                    background: 'rgba(255, 255, 255, 0.02) !important', 
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    '&:hover': {
+                      transform: 'translateY(-12px)',
+                      background: 'rgba(0, 255, 127, 0.05) !important',
+                      borderColor: 'rgba(0, 255, 127, 0.4)',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+                    }
+                  }}
                 >
-                  <Card
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: 'rgba(10, 10, 10, 0.9)',
-                      border: '1px solid rgba(0, 255, 127, 0.25)',
-                      borderRadius: 4,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-                      overflow: 'hidden',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        borderColor: '#00FF7F',
-                        boxShadow: '0 8px 30px rgba(0,255,127,0.25)',
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ flexGrow: 1, p: 2.5, overflow: 'hidden' }}>
-                      <Typography
-                        fontWeight="bold"
-                        sx={{
-                          color: '#00FF7F',
-                          fontSize: '1rem',
-                          lineHeight: 1.4,
-                          height: '2.8em',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          mb: 1.5,
-                        }}
-                      >
-                        {s.schemeName}
+                  <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="caption" sx={{ color: '#00FF7F', fontWeight: 800 }}>
+                        #{s.schemeCode}
                       </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                          <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>CODE</Typography>
-                          <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600 }}>{s.schemeCode}</Typography>
-                        </Box>
-                        {(() => {
-                           const details = getDetectedDetails(s.schemeName);
-                           return (
-                             <>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                                <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>HOUSE</Typography>
-                                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {details.house}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)', px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                                <Typography variant="caption" sx={{ color: '#90EE90', opacity: 0.7, letterSpacing: 1 }}>CATEGORY</Typography>
-                                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {details.category}
-                                </Typography>
-                              </Box>
-                             </>
-                           )
-                        })()}
+                      <Box sx={{ bgcolor: 'rgba(0, 255, 127, 0.1)', px: 1, py: 0.2, borderRadius: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#00FF7F', fontWeight: 800 }}>
+                          {details.category}
+                        </Typography>
                       </Box>
-                    </CardContent>
-                    <Box sx={{ px: 2.5, pb: 2.5, mt: 'auto' }}>
-                      <Button
-                        component={Link}
-                        href={`/funds/${s.schemeCode}`}
-                        variant="contained"
-                        fullWidth
-                        sx={{
-                          backgroundColor: '#00FF7F',
-                          color: '#000',
-                          fontWeight: 'bold',
-                          borderRadius: '10px',
-                          textTransform: 'none',
-                          fontSize: '0.85rem',
-                          py: 1,
-                          '&:hover': { backgroundColor: '#00cc6a', boxShadow: '0 0 12px #00FF7F' },
-                        }}
-                      >
-                        View Details
-                      </Button>
                     </Box>
-                  </Card>
-                </Box>
-              ))}
-            </Box>
-          </>
+                    
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 800,
+                        color: '#fff',
+                        mb: 4,
+                        lineHeight: 1.3,
+                        height: '2.6em',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {s.schemeName}
+                    </Typography>
+
+                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.02)', p: 1.5, borderRadius: 2, mt: 'auto' }}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', display: 'block', mb: 0.5, fontWeight: 500 }}>FUND HOUSE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#fff' }}>{details.house}</Typography>
+                    </Box>
+                  </CardContent>
+
+                  <Box sx={{ p: 2, mt: 'auto', display: 'flex', gap: 2 }}>
+                    <Button
+                      component={Link}
+                      href={`/funds/${s.schemeCode}`}
+                      variant="contained"
+                      fullWidth
+                      sx={{
+                        bgcolor: '#00FF7F',
+                        color: '#000',
+                        fontWeight: 900,
+                        borderRadius: 3,
+                        textTransform: 'none',
+                        py: 1.2,
+                        '&:hover': { bgcolor: '#00e672' }
+                      }}
+                    >
+                      Analyze
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={() => handleAddToWatchlist(s)}
+                      sx={{
+                        borderColor: "rgba(255,255,255,0.1)",
+                        color: "#fff",
+                        borderRadius: 3,
+                        fontWeight: 600,
+                        textTransform: "none",
+                        "&:hover": { borderColor: "#00FF7F", color: "#00FF7F", bgcolor: "rgba(0,255,127,0.05)" }
+                      }}
+                    >
+                      Watchlist
+                    </Button>
+                  </Box>
+                </Card>
+              );
+            })}
+          </Box>
         )}
 
-        {/* ===== Neon Pagination ===== */}
+        {/* 🔔 Notifications */}
+        <Snackbar 
+          open={snackbar.open} 
+          autoHideDuration={3000} 
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity} 
+            variant="filled" 
+            className="glass-card"
+            sx={{ 
+              width: '100%', 
+              backgroundColor: snackbar.severity === 'success' ? 'rgba(0, 255, 127, 0.9)' : 'rgba(50, 50, 50, 0.9)', 
+              color: snackbar.severity === 'success' ? '#000' : '#fff',
+              fontWeight: 'bold',
+              border: "1px solid rgba(255,255,255,0.1)"
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+
+        {/* Pagination */}
         {totalPages > 1 && (
-          <Box display="flex" justifyContent="center" mt={6}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
             <Pagination
               count={totalPages}
               page={currentPage}
               onChange={(e, page) => setCurrentPage(page)}
               sx={{
                 '& .MuiPaginationItem-root': {
-                  color: '#00FF7F',
-                  border: '1px solid #00FF7F',
-                  fontWeight: 'bold',
-                  '&:hover': { backgroundColor: 'rgba(0,255,127,0.2)' },
+                  color: 'rgba(255,255,255,0.6)',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': { bgcolor: 'rgba(0, 255, 127, 0.1)', color: '#00FF7F' },
                 },
                 '& .Mui-selected': { 
-                  backgroundColor: '#00FF7F !important', 
+                  bgcolor: '#00FF7F !important', 
                   color: '#000 !important' 
                 },
               }}

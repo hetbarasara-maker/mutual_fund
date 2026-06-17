@@ -51,13 +51,12 @@ export default function Navbar() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                px: { xs: 2, sm: 4, md: 6 },
-                py: 1.5,
-                backgroundColor: "rgba(0, 0, 0, 0.9)",
-                backdropFilter: "blur(12px)",
-                borderBottom: "1px solid rgba(0, 255, 127, 0.3)",
-                boxShadow: "0 4px 30px rgba(0, 0, 0, 0.5)",
-                overflow: "hidden",
+                px: { xs: 2.5, sm: 5, md: 8 },
+                py: 2,
+                backgroundColor: "rgba(5, 5, 5, 0.7)",
+                backdropFilter: "blur(20px)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+                boxShadow: "0 4px 30px rgba(0, 0, 0, 0.4)",
             }}
         >
             <Typography

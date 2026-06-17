@@ -11,6 +11,7 @@ import {
   Button,
   Snackbar,
   Alert,
+  Stack,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
@@ -81,165 +82,177 @@ export default function WatchlistPage() {
   };
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#000",
-        color: "#00FF7F",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      {/* Background Elements */}
+      <Box 
+        sx={{ 
+          position: "fixed", 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          zIndex: -1,
+          background: "radial-gradient(circle at 50% 50%, #111 0%, #000 100%)",
+        }} 
+      />
+      
+      {/* Animated Mesh Grid */}
+      <Box 
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+          opacity: 0.1,
+          backgroundImage: `linear-gradient(#00FF7F 1px, transparent 1px), linear-gradient(90deg, #00FF7F 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse at center, black, transparent 80%)",
+        }}
+      />
+
       {/* ===== Main Content ===== */}
-      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 } }}>
-        <Typography
-          variant="h3"
-          align="center"
-          sx={{
-            mb: { xs: 4, sm: 6 },
-            color: "#00FF7F",
-            fontWeight: "bold",
-            fontSize: { xs: "2rem", sm: "3.5rem" }
-          }}
-        >
-          Your Watchlist 💚
-        </Typography>
+      <Container maxWidth="xl" sx={{ flex: 1, py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 4 }, position: "relative", zIndex: 1 }}>
+        <Box sx={{ mb: 6, textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            sx={{ 
+              fontWeight: 900,
+              mb: 1, 
+              background: "linear-gradient(135deg, #fff 0%, #00FF7F 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: { xs: "2.5rem", sm: "3.5rem" }
+            }}
+          >
+            My Watchlist
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.6)', maxWidth: 600, mx: "auto" }}>
+            Tracking your preferred investment opportunities. 
+            Analyze or remove schemes to manage your portfolio strategy.
+          </Typography>
+        </Box>
 
         {watchlist.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 8 }}>
-            <Typography variant="h6" sx={{ color: "#90EE90", mb: 3 }}>
-              Your watchlist is empty. Go add some funds!
+          <Box className="glass-card" sx={{ textAlign: "center", py: 12, border: "1px dashed rgba(255,255,255,0.1)" }}>
+            <Typography variant="h5" sx={{ color: "rgba(255,255,255,0.4)", mb: 4 }}>
+              Your watchlist is currently empty.
             </Typography>
             <Button 
                variant="contained" 
-               sx={{ backgroundColor: "#00FF7F", color: "#000", fontWeight: "bold", borderRadius: 3 }}
+               sx={{ backgroundColor: "#00FF7F", color: "#000", fontWeight: 800, px: 4, py: 1.5, borderRadius: 3, textTransform: "none" }}
                onClick={() => router.push("/funds")}
             >
-              Explore Funds
+              Discover Funds
             </Button>
           </Box>
         ) : (
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
-              gap: 3,
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "1fr 1fr",
+                md: "1fr 1fr 1fr",
+              },
+              gap: 4,
+              width: "100%",
             }}
           >
-            {watchlist.map((fund, index) => (
-              <Box
-                key={index}
-                sx={{
-                  height: 320,
-                  display: "flex",
-                }}
-              >
+            {watchlist.map((fund, index) => {
+              const details = getDetectedDetails(fund.schemeName);
+              return (
                 <Card
+                  key={index}
+                  className="glass-card"
                   sx={{
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "rgba(10, 10, 10, 0.9)",
-                    border: "1px solid rgba(0, 255, 127, 0.25)",
-                    borderRadius: 4,
+                    height: 420, // Mathematically identical height
                     display: "flex",
                     flexDirection: "column",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
-                    overflow: "hidden",
+                    p: 1,
+                    background: "rgba(255, 255, 255, 0.02) !important",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                     "&:hover": {
-                      transform: "translateY(-8px)",
-                      borderColor: "#00FF7F",
-                      boxShadow: "0 8px 30px rgba(0,255,127,0.25)",
+                      transform: "translateY(-10px)",
+                      background: "rgba(0, 255, 127, 0.05) !important",
+                      borderColor: "rgba(0, 255, 127, 0.4)",
+                      boxShadow: "0 20px 40px rgba(0,0,0,0.4)"
                     },
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1, p: 2.5, overflow: "hidden" }}>
+                  <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                      <Typography variant="caption" sx={{ color: "#00FF7F", fontWeight: "bold", letterSpacing: 1 }}>
+                        {fund.schemeCode}
+                      </Typography>
+                      <Box sx={{ bgcolor: "rgba(0, 255, 127, 0.1)", px: 1, py: 0.2, borderRadius: 1 }}>
+                        <Typography variant="caption" sx={{ color: "#00FF7F", fontWeight: "bold" }}>
+                          {fund.category || details.category}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
                     <Typography
-                      fontWeight="bold"
+                      variant="h6"
                       sx={{
-                        color: "#00FF7F",
-                        fontSize: "1rem",
-                        lineHeight: 1.4,
-                        height: "2.8em",
+                        fontWeight: 800,
+                        color: "#fff",
+                        mb: 3,
+                        lineHeight: 1.3,
+                        height: "2.6em",
+                        overflow: "hidden",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        mb: 2,
                       }}
                     >
                       {fund.schemeName}
                     </Typography>
 
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.8 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                        <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>CODE</Typography>
-                        <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600 }}>{fund.schemeCode}</Typography>
-                      </Box>
-                      {(() => {
-                        const details = getDetectedDetails(fund.schemeName);
-                        return (
-                          <>
-                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                              <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>HOUSE</Typography>
-                              <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {fund.fundHouse || details.house}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", px: 1.5, py: 0.8, borderRadius: 1.5 }}>
-                              <Typography variant="caption" sx={{ color: "#90EE90", opacity: 0.7, letterSpacing: 1 }}>CATEGORY</Typography>
-                              <Typography variant="body2" sx={{ color: "#fff", fontWeight: 600, maxWidth: "60%", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {fund.category || details.category}
-                              </Typography>
-                            </Box>
-                          </>
-                        );
-                      })()}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "rgba(255,255,255,0.02)", p: 1.5, borderRadius: 2, mt: 'auto' }}>
+                      <Typography variant="caption" color="rgba(255,255,255,0.4)">FUND HOUSE</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#fff" }}>{fund.fundHouse || details.house}</Typography>
                     </Box>
                   </CardContent>
 
-                  <Box sx={{ px: 2.5, pb: 2.5, display: "flex", gap: 1.5, mt: "auto" }}>
+                  <Box sx={{ p: 2, display: "flex", gap: 2, mt: 'auto' }}>
                     <Button
                       variant="contained"
                       fullWidth
                       onClick={() => router.push(`/funds/${fund.schemeCode}`)}
                       sx={{
-                        backgroundColor: "#00FF7F",
+                        bgcolor: "#00FF7F",
                         color: "#000",
-                        borderRadius: "10px",
+                        borderRadius: 3,
+                        fontWeight: 800,
                         textTransform: "none",
-                        fontWeight: "bold",
-                        py: 1,
-                        fontSize: "0.85rem",
-                        "&:hover": { backgroundColor: "#00cc6a", boxShadow: "0 0 12px #00FF7F" },
+                        py: 1.2,
+                        "&:hover": { bgcolor: "#00e672", boxShadow: "0 0 20px rgba(0, 255, 127, 0.4)" }
                       }}
                     >
-                      Explore
+                      Analyze
                     </Button>
                     <Button
                       variant="outlined"
                       fullWidth
                       onClick={() => removeFund(fund.schemeCode)}
                       sx={{
+                        borderColor: "rgba(255, 77, 77, 0.2)",
                         color: "#FF4D4D",
-                        borderColor: "rgba(255, 77, 77, 0.4)",
-                        borderRadius: "10px",
+                        borderRadius: 3,
+                        fontWeight: 600,
                         textTransform: "none",
-                        fontWeight: "bold",
-                        py: 1,
-                        fontSize: "0.85rem",
-                        "&:hover": {
-                          borderColor: "#FF4D4D",
-                          backgroundColor: "rgba(255, 77, 77, 0.1)",
-                        },
+                        "&:hover": { borderColor: "#FF4D4D", bgcolor: "rgba(255,77,77,0.05)" }
                       }}
                     >
                       Remove
                     </Button>
                   </Box>
                 </Card>
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         )}
 
@@ -254,12 +267,13 @@ export default function WatchlistPage() {
             onClose={handleCloseSnackbar} 
             severity={snackbar.severity} 
             variant="filled" 
+            className="glass-card"
             sx={{ 
               width: '100%', 
-              backgroundColor: snackbar.severity === 'error' ? '#FF4D4D' : '#333', 
+              backgroundColor: snackbar.severity === 'error' ? 'rgba(255, 77, 77, 0.9)' : 'rgba(50, 50, 50, 0.9)', 
               color: '#fff',
               fontWeight: 'bold',
-              borderRadius: 2
+              border: "1px solid rgba(255,255,255,0.1)"
             }}
           >
             {snackbar.message}

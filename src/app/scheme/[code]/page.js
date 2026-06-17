@@ -121,110 +121,118 @@ export default function SchemePage() {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#000", color: "#00FF7F" }}>
       {/* ===== Fund Info ===== */}
-      <Container sx={{ py: 6 }}>
-        <Typography variant="h4" align="center" fontWeight="bold" sx={{ mb: 4 }}>
-          {metadata.scheme_name}
-        </Typography>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            gap: 4, 
+            maxWidth: "800px", 
+            mx: "auto", 
+            width: "100%" 
+          }}
+        >
+          <Typography variant="h4" align="center" fontWeight="bold" sx={{ mb: 2 }}>
+            {metadata.scheme_name}
+          </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ backgroundColor: "#111", border: "1px solid #00FF7F", boxShadow: "0 0 15px rgba(0,255,127,0.2)" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>
-                  Fund Details
-                </Typography>
-                <Divider sx={{ borderColor: "#00FF7F", mb: 2 }} />
-                <Typography><strong>Fund House:</strong> {metadata.fund_house}</Typography>
-                <Typography><strong>Category:</strong> {metadata.scheme_category}</Typography>
-                <Typography><strong>Type:</strong> {metadata.scheme_type}</Typography>
-                <Typography><strong>ISIN Div Payout:</strong> {metadata.isin_div_payout}</Typography>
-                <Typography><strong>ISIN Reinvestment:</strong> {metadata.isin_div_reinvestment}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+          {/* Returns Overview Card */}
+          <Card sx={{ backgroundColor: "#111", border: "1px solid #00FF7F", width: "100%" }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>Returns Overview</Typography>
+              <Divider sx={{ borderColor: "#00FF7F", mb: 2 }} />
+              <Typography><strong>Latest NAV:</strong> ₹{currentNav}</Typography>
+              <Typography><strong>1 Year Return:</strong> {cagr1y}%</Typography>
+              <Typography><strong>3 Year Return:</strong> {cagr3y}%</Typography>
+              <Typography><strong>5 Year Return:</strong> {cagr5y}%</Typography>
+            </CardContent>
+          </Card>
 
-          <Grid item xs={12} md={6}>
-            <Card sx={{ backgroundColor: "#111", border: "1px solid #00FF7F" }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>Returns Overview</Typography>
-                <Divider sx={{ borderColor: "#00FF7F", mb: 2 }} />
-                <Typography><strong>Latest NAV:</strong> ₹{currentNav}</Typography>
-                <Typography><strong>1 Year Return:</strong> {cagr1y}%</Typography>
-                <Typography><strong>3 Year Return:</strong> {cagr3y}%</Typography>
-                <Typography><strong>5 Year Return:</strong> {cagr5y}%</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+          {/* Fund Details Card */}
+          <Card sx={{ backgroundColor: "#111", border: "1px solid #00FF7F", boxShadow: "0 0 15px rgba(0,255,127,0.2)", width: "100%" }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>
+                Fund Details
+              </Typography>
+              <Divider sx={{ borderColor: "#00FF7F", mb: 2 }} />
+              <Typography><strong>Fund House:</strong> {metadata.fund_house}</Typography>
+              <Typography><strong>Category:</strong> {metadata.scheme_category}</Typography>
+              <Typography><strong>Type:</strong> {metadata.scheme_type}</Typography>
+              <Typography><strong>ISIN Div Payout:</strong> {metadata.isin_div_payout}</Typography>
+              <Typography><strong>ISIN Reinvestment:</strong> {metadata.isin_div_reinvestment}</Typography>
+            </CardContent>
+          </Card>
 
-        {/* ===== NAV Chart ===== */}
-        <Box sx={{ mt: 6, p: 3, borderRadius: 4, backgroundColor: "#111", border: "1px solid #00FF7F" }}>
-          <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>NAV History</Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={navHistory.slice(0, 60).reverse()}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis dataKey="date" tick={{ fill: "#00FF7F", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#00FF7F" }} />
-              <Tooltip contentStyle={{ backgroundColor: "#111", border: "1px solid #00FF7F", color: "#00FF7F" }} />
-              <Line type="monotone" dataKey="nav" stroke="#00FF7F" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Box>
+          {/* ===== NAV Chart ===== */}
+          <Box sx={{ p: 3, borderRadius: 4, backgroundColor: "#111", border: "1px solid #00FF7F", width: "100%" }}>
+            <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>NAV History</Typography>
+            <ResponsiveContainer width="100%" height="300">
+              <LineChart data={navHistory.slice(0, 60).reverse()}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis dataKey="date" tick={{ fill: "#00FF7F", fontSize: 10 }} />
+                <YAxis tick={{ fill: "#00FF7F" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#111", border: "1px solid #00FF7F", color: "#00FF7F" }} />
+                <Line type="monotone" dataKey="nav" stroke="#00FF7F" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
 
-        {/* ===== Calculator ===== */}
-        <Box sx={{ mt: 6, p: 3, borderRadius: 4, backgroundColor: "#111", border: "1px solid #00FF7F" }}>
-          <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>Return Calculator</Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Investment Amount (₹)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                InputLabelProps={{ style: { color: "#00FF7F" } }}
-                InputProps={{ style: { color: "#00FF7F" } }}
-                sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#00FF7F" } } }}
-              />
+          {/* ===== Calculator ===== */}
+          <Box sx={{ p: 3, borderRadius: 4, backgroundColor: "#111", border: "1px solid #00FF7F", width: "100%" }}>
+            <Typography variant="h6" sx={{ color: "#90EE90", mb: 2 }}>Return Calculator</Typography>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Investment Amount (₹)"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  InputLabelProps={{ style: { color: "#00FF7F" } }}
+                  InputProps={{ style: { color: "#00FF7F" } }}
+                  sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#00FF7F" } } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  label="Years"
+                  type="number"
+                  value={years}
+                  onChange={(e) => setYears(e.target.value)}
+                  InputLabelProps={{ style: { color: "#00FF7F" } }}
+                  InputProps={{ style: { color: "#00FF7F" } }}
+                  sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#00FF7F" } } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Button
+                  variant="contained"
+                  onClick={handleCalculate}
+                  sx={{
+                    backgroundColor: "#00FF7F",
+                    color: "#000",
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 3,
+                    fontWeight: "bold",
+                    "&:hover": { backgroundColor: "#32CD32" },
+                  }}
+                >
+                  Calculate
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                fullWidth
-                label="Years"
-                type="number"
-                value={years}
-                onChange={(e) => setYears(e.target.value)}
-                InputLabelProps={{ style: { color: "#00FF7F" } }}
-                InputProps={{ style: { color: "#00FF7F" } }}
-                sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#00FF7F" } } }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Button
-                variant="contained"
-                onClick={handleCalculate}
-                sx={{
-                  backgroundColor: "#00FF7F",
-                  color: "#000",
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 3,
-                  fontWeight: "bold",
-                  "&:hover": { backgroundColor: "#32CD32" },
-                }}
-              >
-                Calculate
-              </Button>
-            </Grid>
-          </Grid>
 
-          {finalValue && (
-            <Typography sx={{ mt: 3, color: "#90EE90" }}>
-              💰 Your investment of ₹{amount} could grow to approximately <strong>₹{finalValue}</strong> in {years} years.
-            </Typography>
-          )}
+            {finalValue && (
+              <Typography sx={{ mt: 3, color: "#90EE90" }}>
+                💰 Your investment of ₹{amount} could grow to approximately <strong>₹{finalValue}</strong> in {years} years.
+              </Typography>
+            )}
+          </Box>
         </Box>
       </Container>
+    </Box>
     </Box>
   );
 }
