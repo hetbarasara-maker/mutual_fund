@@ -20,8 +20,11 @@ import {
   Snackbar,
   Alert,
   Stack,
+  Fab,
+  Zoom,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useRouter } from "next/navigation";
 
 export default function FundsPage() {
@@ -35,7 +38,25 @@ export default function FundsPage() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const fundsPerPage = 25;
+
+  // Scroll listener to toggle top button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Debounce search input to avoid hitting API on every keystroke
   useEffect(() => {
@@ -459,6 +480,34 @@ export default function FundsPage() {
             {snackbar.message}
           </Alert>
         </Snackbar>
+        {/* Floating Back to Top Button */}
+        <Zoom in={showScrollTop}>
+          <Fab
+            onClick={scrollToTop}
+            size="medium"
+            sx={{
+              position: "fixed",
+              bottom: 32,
+              right: 32,
+              bgcolor: "rgba(10, 10, 10, 0.85)",
+              color: "#00FF7F",
+              border: "1px solid rgba(0, 255, 127, 0.3)",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
+              "&:hover": {
+                bgcolor: "#00FF7F",
+                color: "#000",
+                borderColor: "#00FF7F",
+                boxShadow: "0 0 25px rgba(0, 255, 127, 0.6)",
+                transform: "translateY(-4px)"
+              },
+              transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            }}
+            aria-label="scroll back to top"
+          >
+            <KeyboardArrowUpIcon />
+          </Fab>
+        </Zoom>
       </Container>
     </Box>
   );
